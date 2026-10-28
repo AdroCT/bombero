@@ -251,7 +251,7 @@ async function initStore(){
     if(view.name === "home") render();
   }catch(e){ setSync("Progreso guardado solo en este dispositivo"); }
 }
-let syncMsg = "Progreso guardado en este iPhone. Haz una copia desde Estadísticas.";
+let syncMsg = "Progreso guardado en este dispositivo. Haz una copia desde Estadísticas.";
 function setSync(m){ syncMsg = m; const el = $("#syncline"); if(el) el.textContent = m; }
 function scheduleSave(){
   dirty = true; ls("bm-progress", P);
@@ -665,7 +665,7 @@ VIEWS.stats = () => {
     <div class="eyebrow">Por tema</div>
     <div class="list">${rows.map(({t,s}) => `<button class="row" data-topic="${t.id}"><div class="num">${t.bloque==="I"?"I-":""}${t.num}</div><div class="txt"><b>${esc(t.title)}</b><small>${s.seen}/${s.n} vistas · ${s.seen ? pct(s.ok,s.seen)+"% acierto" : "sin empezar"}</small><div class="bar"><i class="g" style="width:${pct(s.ok,s.n)}%"></i><i class="r" style="width:${pct(s.ko,s.n)}%"></i></div></div>${chev}</button>`).join("")}</div>
     <div class="eyebrow">Copia de seguridad</div>
-    <div class="card stack small"><div>Tu progreso se guarda solo en este iPhone. Si borras los datos de Safari o cambias de móvil se pierde, así que exporta una copia de vez en cuando y guárdala en Archivos o iCloud.</div>
+    <div class="card stack small"><div>Tu progreso se guarda solo en este dispositivo y navegador (el móvil y el ordenador llevan cada uno el suyo). Si borras los datos del navegador o cambias de móvil se pierde, así que exporta una copia de vez en cuando; con «Importar copia» la pasas de un dispositivo a otro.</div>
     <div class="btns"><button class="btn" id="exp">Exportar progreso</button><label class="btn" for="imp">Importar copia</label><input id="imp" type="file" accept="application/json,.json" hidden></div></div>
     <button class="btn ghost" id="reset">Borrar todo mi progreso</button>
   </div>`;
@@ -681,7 +681,7 @@ VIEWS.stats = () => {
     try{ const d = JSON.parse(await f.text()); if(!d || !d.q) throw 0; merge(d); scheduleSave(); toast("Copia importada"); render(); }
     catch(err){ toast("Ese archivo no es una copia válida"); }
   };
-  $("#reset").onclick = () => openSheet("¿Borrar el progreso?", `<div class="stack"><p style="margin:0">Se borrarán tus respuestas, fallos y notas de simulacros de este iPhone. No se puede deshacer.</p><div class="btns"><button class="btn" id="r-no">Cancelar</button><button class="btn primary" id="r-yes">Borrar</button></div></div>`) || ($("#r-no").onclick = closeSheet, $("#r-yes").onclick = () => { P = { q:{}, exams:[], v:1 }; dirty = true; scheduleSave(); flush(); closeSheet(); toast("Progreso borrado"); render(); });
+  $("#reset").onclick = () => openSheet("¿Borrar el progreso?", `<div class="stack"><p style="margin:0">Se borrarán tus respuestas, fallos y notas de simulacros de este dispositivo. No se puede deshacer.</p><div class="btns"><button class="btn" id="r-no">Cancelar</button><button class="btn primary" id="r-yes">Borrar</button></div></div>`) || ($("#r-no").onclick = closeSheet, $("#r-yes").onclick = () => { P = { q:{}, exams:[], v:1 }; dirty = true; scheduleSave(); flush(); closeSheet(); toast("Progreso borrado"); render(); });
 };
 
 /* ---------- arranque ---------- */
