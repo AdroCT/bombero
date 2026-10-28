@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Bombero Test">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b1e23" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Test Bombero Madrid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: una sola columna tipo app (máx. 680px), barra superior fija y contenido apilado; pensado para iPhone. */
+:root{
+  --bg:#f3f1ee; --surface:#ffffff; --sunken:#e9e6e1; --line:#d8d3cc;
+  --ink:#1d2129; --muted:#5d6370; --accent:#c8102e; --accent-ink:#ffffff; --accent-soft:#f8e1e4;
+  --ok:#1f7a4d; --ok-soft:#dff1e7; --ko:#b3261e; --ko-soft:#f9e0de; --warn:#9a6700; --warn-soft:#fbefcf;
+  --quote:#fff7da; --quote-line:#e3b341;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121417; --surface:#1b1e23; --sunken:#24282e; --line:#33383f;
+  --ink:#eceae6; --muted:#a2a7b0; --accent:#ff4d5e; --accent-ink:#1a0005; --accent-soft:#3a1b20;
+  --ok:#5cc98f; --ok-soft:#173326; --ko:#ff7a70; --ko-soft:#3b1d1b; --warn:#f0b43c; --warn-soft:#3a2f14;
+  --quote:#2c2716; --quote-line:#b8902c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121417; --surface:#1b1e23; --sunken:#24282e; --line:#33383f;
+  --ink:#eceae6; --muted:#a2a7b0; --accent:#ff4d5e; --accent-ink:#1a0005; --accent-soft:#3a1b20;
+  --ok:#5cc98f; --ok-soft:#173326; --ko:#ff7a70; --ko-soft:#3b1d1b; --warn:#f0b43c; --warn-soft:#3a2f14;
+  --quote:#2c2716; --quote-line:#b8902c; color-scheme:dark}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{-webkit-tap-highlight-color:transparent}
+body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--body);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--display);letter-spacing:.01em;line-height:1.1;text-wrap:balance;margin:0}
+.wrap{max-width:680px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 48px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .in{max-width:680px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:52px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+.top h1{font-size:22px;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand{display:flex;align-items:center;gap:8px}
+.brand .mark{width:26px;height:26px;border-radius:6px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:15px}
+.iconbtn{border:0;background:transparent;width:40px;height:40px;border-radius:10px;display:grid;place-items:center;cursor:pointer;flex:none}
+.iconbtn:active{background:var(--sunken)}
+.iconbtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.eyebrow{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:13px;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.hero{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;min-width:0}
+.stat b{display:block;font-family:var(--display);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.stat span{display:block;font-size:12px;line-height:1.25;color:var(--muted);margin-top:4px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:14px;cursor:pointer;min-width:0}
+.mode:active{transform:scale(.99)}
+.mode h3{font-size:21px;font-weight:700}
+.mode p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.35}
+.mode.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.mode.primary p{color:inherit;opacity:.88}
+.mode .tag{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
+.list{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:0;border-top:1px solid var(--line);background:transparent;text-align:left;cursor:pointer;width:100%}
+.row:first-child{border-top:0}
+.row:active{background:var(--sunken)}
+.row .num{font-family:var(--display);font-weight:700;font-size:20px;width:38px;flex:none;color:var(--accent);font-variant-numeric:tabular-nums}
+.row .txt{flex:1;min-width:0}
+.row .txt b{display:block;font-weight:700;line-height:1.25}
+.row .txt small{color:var(--muted);font-size:13px}
+.chev{width:18px;height:18px;flex:none;stroke:var(--muted);fill:none;stroke-width:2}
+.bar{height:6px;border-radius:3px;background:var(--sunken);overflow:hidden;margin-top:6px;display:flex}
+.bar i{display:block;height:100%}
+.bar .g{background:var(--ok)} .bar .r{background:var(--ko)}
+.badge{display:inline-block;font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:.05em;text-transform:uppercase;padding:1px 7px;border-radius:999px;background:var(--warn-soft);color:var(--warn);vertical-align:2px}
+.seg{display:flex;background:var(--sunken);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;padding:8px 6px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.levels{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lvl{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.lvl h3{font-size:20px}
+.lvl .dots{display:flex;gap:3px;margin-bottom:4px}
+.lvl .dots i{width:16px;height:5px;border-radius:2px;background:var(--sunken)}
+.lvl .dots i.on{background:var(--accent)}
+.lvl small{color:var(--muted);font-size:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;min-height:48px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent}
+.btn.block{width:100%}
+.btn:disabled{opacity:.45;cursor:default}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btns .btn{flex:1}
+/* Test */
+.qhead{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.qhead .count{font-family:var(--display);font-weight:700;font-size:18px;font-variant-numeric:tabular-nums}
+.timer{font-family:var(--display);font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;padding:2px 10px;border-radius:8px;background:var(--sunken)}
+.timer.low{background:var(--ko-soft);color:var(--ko)}
+.progress{height:4px;background:var(--sunken);border-radius:2px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.qmeta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chip{font-size:12.5px;padding:2px 9px;border-radius:999px;background:var(--sunken);color:var(--muted)}
+.chip.l4{background:var(--accent-soft);color:var(--accent)}
+.question{font-size:19px;line-height:1.4;font-weight:700;margin:0}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px 14px;cursor:pointer;line-height:1.4;width:100%}
+.opt .k{flex:none;width:28px;height:28px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:16px;text-transform:lowercase}
+.opt span:last-child{min-width:0;padding-top:2px}
+.opt.sel{border-color:var(--ink)}
+.opt.sel .k{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.ok .k{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.opt.ko{border-color:var(--ko);background:var(--ko-soft)}
+.opt.ko .k{background:var(--ko);border-color:var(--ko);color:var(--surface)}
+.opt:disabled{cursor:default;color:inherit}
+.feedback{border-radius:var(--r);padding:12px 14px;border:1px solid var(--line);background:var(--surface)}
+.feedback.good{border-color:var(--ok)} .feedback.bad{border-color:var(--ko)}
+.feedback h3{font-size:20px;margin-bottom:4px}
+.feedback.good h3{color:var(--ok)} .feedback.bad h3{color:var(--ko)}
+.feedback p{margin:0}
+.quote{background:var(--quote);border-left:4px solid var(--quote-line);border-radius:8px;padding:10px 12px;font-style:italic}
+.quote small{display:block;font-style:normal;color:var(--muted);margin-top:6px;font-size:13px}
+.bottombar{position:sticky;bottom:0;background:linear-gradient(to bottom,transparent,var(--bg) 30%);padding-top:16px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+.flag[aria-pressed="true"]{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+.grid-nav{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px}
+.grid-nav button{border:1px solid var(--line);background:var(--surface);border-radius:8px;height:38px;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;font-size:14px}
+.grid-nav button.ans{background:var(--sunken)}
+.grid-nav button.flg{border-color:var(--warn);color:var(--warn)}
+.grid-nav button.cur{outline:2px solid var(--accent)}
+.grid-nav button.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.grid-nav button.ko{background:var(--ko-soft);border-color:var(--ko);color:var(--ko)}
+/* Resultados */
+.score{display:flex;align-items:baseline;gap:10px}
+.score b{font-family:var(--display);font-size:64px;line-height:1;font-variant-numeric:tabular-nums}
+.verdict{font-family:var(--display);font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:.04em}
+.verdict.pass{color:var(--ok)} .verdict.fail{color:var(--ko)}
+.kv{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kv div{background:var(--sunken);border-radius:10px;padding:8px;text-align:center}
+.kv b{display:block;font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums}
+.kv span{display:block;font-size:12px;line-height:1.2;color:var(--muted)}
+.review{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.review .q{font-weight:700}
+.review .a{font-size:14.5px}
+.review .a.ok{color:var(--ok)} .review .a.ko{color:var(--ko)}
+.linkbtn{border:0;background:none;color:var(--accent);font-weight:700;padding:0;cursor:pointer;text-align:left;font-size:14.5px}
+/* Apuntes */
+.notes{font-size:16px;line-height:1.6}
+.notes h4{font-family:var(--display);font-size:20px;margin:18px 0 6px;font-weight:700}
+.notes p{margin:0 0 10px}
+.notes ul,.notes ol{margin:0 0 10px;padding-left:22px}
+.notes li{margin:3px 0}
+.notes strong{font-weight:700}
+.notes .tbl{overflow-x:auto;margin:0 0 12px}
+.notes table{border-collapse:collapse;font-size:14px;min-width:100%}
+.notes th,.notes td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.notes th{background:var(--sunken)}
+.sec-title{font-size:24px;font-weight:700}
+mark{background:var(--quote);color:inherit;border-bottom:2px solid var(--quote-line)}
+/* Hoja inferior */
+.sheet-bg{position:fixed;inset:0;background:rgba(10,12,16,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:680px;max-height:88%;border-radius:18px 18px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.sheet .sh-head{display:flex;align-items:center;gap:8px;padding:10px 12px 10px 16px;border-bottom:1px solid var(--line);background:var(--surface)}
+.sheet .sh-head h2{flex:1;font-size:18px;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sheet .sh-body{overflow-y:auto;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));-webkit-overflow-scrolling:touch}
+.search{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;font:inherit;color:inherit}
+.empty{text-align:center;padding:24px 12px;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;z-index:30}
+.sync{font-size:12px;color:var(--muted)}
+.hist{display:flex;align-items:flex-end;gap:4px;height:70px}
+.hist i{flex:1;border-radius:3px 3px 0 0;background:var(--accent);min-width:4px;max-width:22px}
+.hist i.fail{background:var(--line)}
+@media (max-width:380px){.modes{grid-template-columns:1fr}.kv{grid-template-columns:repeat(2,1fr)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<header class="top"><div class="in" id="topbar"></div></header>
+<main class="wrap" id="app"><div class="empty">Cargando temario…</div></main>
+<div id="sheet-root"></div>
+
+<script>
+"use strict";
+/* ---------- utilidades ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pct = (a, b) => b ? Math.round(100 * a / b) : 0;
+const fmt1 = n => (Math.round(n * 100) / 100).toFixed(2).replace(".", ",");
+const ICON = {
+  back: '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',
+  close: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  book: '<svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/></svg>',
+  search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+  stats: '<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  grid: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>'
+};
+const chev = '<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
+const LVL = {1:"Fácil",2:"Medio",3:"Difícil",4:"Muy difícil"};
+const LETTERS = ["a","b","c"];
+function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
+function ls(k, v){ try{ if(v===undefined){ const s=localStorage.getItem(k); return s?JSON.parse(s):null; } localStorage.setItem(k, JSON.stringify(v)); }catch(e){ return null; } }
+
+/* ---------- datos ---------- */
+let D = null, TOP = {}, SEC = {}, Q = {}, QBY = {};
+async function loadData(){
+  const r = await fetch("data.json");
+  if(!r.ok) throw new Error("HTTP " + r.status);
+  D = await r.json();
+  D.topics.forEach(t => { TOP[t.id] = t; QBY[t.id] = []; t.sections.forEach(s => SEC[s.id] = s); });
+  D.questions.forEach(q => { Q[q.id] = q; (QBY[q.t] ||= []).push(q); });
+}
+
+/* ---------- progreso (por persona: base de datos privada; copia local como respaldo) ---------- */
+let P = { q:{}, exams:[], v:1 };
+let store = null, saveTimer = null, dirty = false;
+function loadLocal(){ const l = ls("bm-progress"); if(l && l.q) P = l; }
+function merge(remote){
+  if(!remote || !remote.q) return;
+  for(const [id, r] of Object.entries(remote.q)){ const l = P.q[id]; if(!l || (r[3]||0) > (l[3]||0)) P.q[id] = r; }
+  const seen = new Set(P.exams.map(e => e.at));
+  (remote.exams||[]).forEach(e => { if(!seen.has(e.at)) P.exams.push(e); });
+  P.exams.sort((a,b) => a.at - b.at); P.exams = P.exams.slice(-60);
+}
+async function initStore(){
+  try{
+    const c = window.claude; if(!c || !c.use) return;
+    const [db, user] = await Promise.all([c.use("db"), c.use("user")]);
+    if(!db || !user) return;
+    const uid = await user.id(); if(!uid) return;
+    const ref = db.doc("data/users/" + uid + "/progress");
+    const snap = await ref.get();
+    if(snap.exists){ merge(snap.data()); ls("bm-progress", P); }
+    store = ref; setSync("Progreso sincronizado en tu cuenta");
+    if(dirty) scheduleSave();
+    if(view.name === "home") render();
+  }catch(e){ setSync("Progreso guardado solo en este dispositivo"); }
+}
+let syncMsg = "Progreso guardado en este iPhone. Haz una copia desde Estadísticas.";
+function setSync(m){ syncMsg = m; const el = $("#syncline"); if(el) el.textContent = m; }
+function scheduleSave(){
+  dirty = true; ls("bm-progress", P);
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flush, 2500);
+}
+let saving = false;
+async function flush(){
+  if(!store || saving || !dirty) return;
+  saving = true; dirty = false;
+  try{ await store.set({ q:P.q, exams:P.exams, v:1, updated:Date.now() }); }
+  catch(e){ dirty = true; if(e && e.code === "quota_exceeded") setSync("No se pudo sincronizar: base de datos llena"); }
+  saving = false; if(dirty) scheduleSave();
+}
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "hidden") flush(); });
+function record(qid, ok){
+  const r = P.q[qid] || [0,0,0,0];
+  if(ok) r[0]++; else r[1]++;
+  r[2] = ok ? 1 : 0; r[3] = Date.now();
+  P.q[qid] = r; scheduleSave();
+}
+const isFailed = id => { const r = P.q[id]; return r && r[2] === 0; };
+function topicStats(tid, lvl){
+  let seen=0, ok=0, ko=0, n=0;
+  for(const q of QBY[tid] || []){ if(lvl && q.l !== lvl) continue; n++; const r = P.q[q.id]; if(r){ seen++; if(r[2]) ok++; else ko++; } }
+  return { n, seen, ok, ko };
+}
+
+/* ---------- vista / navegación ---------- */
+let view = { name:"home" }, stack = [];
+function go(v, push = true){ if(push) stack.push(view); view = v; render(); window.scrollTo(0,0); }
+function back(){ if(view.name === "test" && session && !session.done && !confirmLeave()) return; view = stack.pop() || { name:"home" }; render(); window.scrollTo(0,0); }
+function confirmLeave(){ return true; } // la sesión queda guardada y se puede reanudar
+function topbar(title, opts = {}){
+  const left = opts.home ? '<div class="brand"><div class="mark">B</div></div>' : `<button class="iconbtn" id="tb-back" aria-label="Volver">${ICON.back}</button>`;
+  const right = (opts.right || []).map(b => `<button class="iconbtn" id="${b.id}" aria-label="${esc(b.label)}">${ICON[b.icon]}</button>`).join("");
+  $("#topbar").innerHTML = `${left}<h1>${esc(title)}</h1>${right}`;
+  const bb = $("#tb-back"); if(bb) bb.onclick = back;
+  (opts.right || []).forEach(b => $("#" + b.id).onclick = b.on);
+}
+function render(){
+  clearInterval(tickTimer);
+  const fn = VIEWS[view.name] || VIEWS.home; fn();
+}
+
+/* ---------- inicio ---------- */
+const VIEWS = {};
+VIEWS.home = () => {
+  topbar("Bombero Madrid · Test", { home:true, right:[{id:"tb-search",icon:"search",label:"Buscar",on:()=>go({name:"search"})},{id:"tb-stats",icon:"stats",label:"Estadísticas",on:()=>go({name:"stats"})}] });
+  const total = D.questions.length, seen = Object.keys(P.q).filter(id => Q[id]).length;
+  let ok = 0; for(const id in P.q){ if(Q[id] && P.q[id][2]) ok++; }
+  const fails = D.questions.filter(q => isFailed(q.id)).length;
+  const lastEx = P.exams.filter(e => e.kind !== "custom").slice(-1)[0];
+  const resume = ls("bm-session");
+  const b1 = D.topics.filter(t => t.bloque === "I"), b2 = D.topics.filter(t => t.bloque === "II");
+  $("#app").innerHTML = `<div class="stack">
+    <div class="hero">
+      <div class="stat"><b>${pct(seen,total)}%</b><span>preguntas vistas</span></div>
+      <div class="stat"><b>${seen ? pct(ok,seen) : 0}%</b><span>acierto actual</span></div>
+      <div class="stat"><b>${lastEx ? fmt1(lastEx.nota) : "–"}</b><span>último simulacro</span></div>
+    </div>
+    <div class="sync" id="syncline">${esc(syncMsg)}</div>
+    ${resume && !resume.done ? `<button class="card row" id="resume" style="border-radius:var(--r)"><div class="txt"><b>Continuar ${esc(resume.title)}</b><small>Pregunta ${resume.i+1} de ${resume.ids.length}</small></div>${chev}</button>` : ""}
+    <div class="modes">
+      <button class="mode primary" id="m-sim"><span class="tag">Formato real</span><h3>Simulacro</h3><p>90 preguntas de todo el temario, 95 min, los errores restan 1/3.</p></button>
+      <button class="mode" id="m-hard"><span class="tag">Recta final</span><h3>Muy difícil</h3><p>Solo preguntas de nivel difícil y muy difícil, con tiempo.</p></button>
+      <button class="mode" id="m-fails"><span class="tag">${fails} pendientes</span><h3>Repasar fallos</h3><p>Las preguntas que fallaste la última vez que salieron.</p></button>
+      <button class="mode" id="m-mix"><span class="tag">Rápido</span><h3>Test mixto</h3><p>20 preguntas de cualquier tema y nivel, con corrección al momento.</p></button>
+    </div>
+    <div class="eyebrow">Bloque II · Conocimientos específicos</div>
+    <div class="list">${b2.map(topicRow).join("")}</div>
+    <div class="eyebrow">Bloque I · Conocimientos comunes</div>
+    <div class="list">${b1.map(topicRow).join("")}</div>
+    <p class="small muted">${total} preguntas en ${D.topics.length} temas. Los temas marcados como <span class="badge">Ampliado</span> no estaban en tus PDF y se han redactado a partir del programa oficial: no tienen página de origen.</p>
+  </div>`;
+  $("#m-sim").onclick = () => go({ name:"examsetup", kind:"sim" });
+  $("#m-hard").onclick = () => go({ name:"examsetup", kind:"hard" });
+  $("#m-fails").onclick = () => { const ids = shuffle(D.questions.filter(q => isFailed(q.id)).map(q => q.id)); if(!ids.length) return toast("No tienes fallos pendientes"); startSession({ title:"Repaso de fallos", ids:ids.slice(0,40), mode:"study", kind:"fails" }); };
+  $("#m-mix").onclick = () => startSession({ title:"Test mixto", ids:shuffle(D.questions.map(q=>q.id)).slice(0,20), mode:"study", kind:"mix" });
+  const rb = $("#resume"); if(rb) rb.onclick = () => { session = resume; go({ name:"test" }); };
+  document.querySelectorAll("[data-topic]").forEach(b => b.onclick = () => go({ name:"topic", id:b.dataset.topic }));
+};
+function topicRow(t){
+  const s = topicStats(t.id);
+  const g = pct(s.ok, s.n), r = pct(s.ko, s.n);
+  return `<button class="row" data-topic="${t.id}"><div class="num">${t.num}</div><div class="txt"><b>${esc(t.title)} ${t.source === "ampliado" ? '<span class="badge">Ampliado</span>' : ""}</b><small>${s.n} preguntas · ${s.seen ? pct(s.ok, s.seen) + "% de acierto" : "sin empezar"}</small><div class="bar"><i class="g" style="width:${g}%"></i><i class="r" style="width:${r}%"></i></div></div>${chev}</button>`;
+}
+
+/* ---------- tema ---------- */
+VIEWS.topic = () => {
+  const t = TOP[view.id];
+  topbar(`Tema ${t.num}`, { right:[{id:"tb-notes",icon:"book",label:"Apuntes",on:()=>go({name:"notes",id:t.id})}] });
+  const len = ls("bm-len") || 20;
+  const lv = [1,2,3,4].map(l => { const s = topicStats(t.id, l); return `<button class="lvl" data-l="${l}"><div class="dots">${[1,2,3,4].map(i=>`<i class="${i<=l?"on":""}"></i>`).join("")}</div><h3>${LVL[l]}</h3><small>${s.n} preguntas · ${s.seen ? pct(s.ok, s.seen) + "% acierto" : "sin empezar"}</small></button>`; }).join("");
+  const fails = (QBY[t.id]||[]).filter(q => isFailed(q.id)).length;
+  $("#app").innerHTML = `<div class="stack">
+    <div><div class="eyebrow">Bloque ${t.bloque} · Tema ${t.num}</div><h2 style="font-size:30px;margin-top:4px">${esc(t.title)}</h2></div>
+    ${t.source === "ampliado" ? '<div class="card small"><span class="badge">Ampliado</span> Este tema no estaba entre tus PDF. Los apuntes se han redactado a partir del programa oficial; contrástalos con tu academia.</div>' : ""}
+    <p class="muted" style="margin:0">${esc(t.summary)}</p>
+    <div class="eyebrow">Preguntas por test</div>
+    <div class="seg" id="len">${[10,20,30,0].map(n=>`<button aria-pressed="${n===len}" data-n="${n}">${n||"Todas"}</button>`).join("")}</div>
+    <div class="eyebrow">Elige nivel</div>
+    <div class="levels">${lv}</div>
+    <div class="btns">
+      <button class="btn" id="t-all">Todos los niveles</button>
+      <button class="btn" id="t-new">Solo no vistas</button>
+    </div>
+    <button class="btn" id="t-fail" ${fails ? "" : "disabled"}>Repasar fallos del tema (${fails})</button>
+    <button class="btn primary" id="t-exam">Examen del tema con tiempo</button>
+    <div class="eyebrow">Apuntes del tema</div>
+    <div class="list">${t.sections.map(s => `<button class="row" data-sec="${s.id}"><div class="txt"><b>${esc(s.title)}</b><small>${s.pages ? "Págs. " + esc(s.pages) + " · " : ""}${(QBY[t.id]||[]).filter(q=>q.s===s.id).length} preguntas</small></div>${chev}</button>`).join("")}</div>
+  </div>`;
+  const getLen = () => ls("bm-len") ?? 20;
+  document.querySelectorAll("#len button").forEach(b => b.onclick = () => { ls("bm-len", +b.dataset.n); document.querySelectorAll("#len button").forEach(x => x.setAttribute("aria-pressed", x === b)); });
+  const pick = (qs) => { const n = getLen(); return shuffle(qs.map(q=>q.id)).slice(0, n || undefined); };
+  document.querySelectorAll(".lvl").forEach(b => b.onclick = () => { const l = +b.dataset.l; const ids = pick(QBY[t.id].filter(q=>q.l===l)); startSession({ title:`Tema ${t.num} · ${LVL[l]}`, ids, mode:"study", kind:"topic" }); });
+  $("#t-all").onclick = () => startSession({ title:`Tema ${t.num} · Mixto`, ids: sortByLevel(pick(QBY[t.id])), mode:"study", kind:"topic" });
+  $("#t-new").onclick = () => { const qs = QBY[t.id].filter(q => !P.q[q.id]); if(!qs.length) return toast("Ya has visto todas las preguntas del tema"); startSession({ title:`Tema ${t.num} · No vistas`, ids: sortByLevel(pick(qs)), mode:"study", kind:"topic" }); };
+  $("#t-fail").onclick = () => startSession({ title:`Tema ${t.num} · Fallos`, ids: shuffle(QBY[t.id].filter(q=>isFailed(q.id)).map(q=>q.id)), mode:"study", kind:"fails" });
+  $("#t-exam").onclick = () => { const ids = shuffle(QBY[t.id].filter(q=>q.l>=2).map(q=>q.id)).slice(0,30); startSession({ title:`Examen tema ${t.num}`, ids, mode:"exam", kind:"custom", minutes:Math.round(ids.length*95/90) }); };
+  document.querySelectorAll("[data-sec]").forEach(b => b.onclick = () => go({ name:"notes", id:t.id, sec:b.dataset.sec }));
+};
+const sortByLevel = ids => ids.sort((a,b) => Q[a].l - Q[b].l);
+
+/* ---------- apuntes ---------- */
+function md(src, hl){
+  const lines = String(src||"").split("\n"); let out = "", list = null, tbl = null, para = [];
+  const inline = s => { s = esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>"); return s; };
+  const flushP = () => { if(para.length){ out += `<p>${inline(para.join(" "))}</p>`; para = []; } };
+  const flushL = () => { if(list){ out += `<${list.t}>${list.items.map(i=>`<li>${inline(i)}</li>`).join("")}</${list.t}>`; list = null; } };
+  const flushT = () => { if(tbl){ const rows = tbl.filter(r => !/^\s*\|?\s*:?-{2,}/.test(r)); const cells = r => r.replace(/^\s*\|/,"").replace(/\|\s*$/,"").split("|").map(c=>c.trim());
+      out += `<div class="tbl"><table>${rows.map((r,i)=>`<tr>${cells(r).map(c=>i===0?`<th>${inline(c)}</th>`:`<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</table></div>`; tbl = null; } };
+  for(const raw of lines){
+    const l = raw.trimEnd();
+    if(/^\s*\|.*\|\s*$/.test(l)){ flushP(); flushL(); (tbl ||= []).push(l); continue; } else flushT();
+    let m;
+    if(!l.trim()){ flushP(); flushL(); continue; }
+    if((m = l.match(/^#{1,6}\s+(.*)/))){ flushP(); flushL(); out += `<h4>${inline(m[1])}</h4>`; continue; }
+    if((m = l.match(/^\s*[-•*]\s+(.*)/))){ flushP(); if(!list || list.t !== "ul"){ flushL(); list = { t:"ul", items:[] }; } list.items.push(m[1]); continue; }
+    if((m = l.match(/^\s*\d+[.)]\s+(.*)/))){ flushP(); if(!list || list.t !== "ol"){ flushL(); list = { t:"ol", items:[] }; } list.items.push(m[1]); continue; }
+    if(list && /^\s{2,}/.test(raw)){ list.items[list.items.length-1] += " " + l.trim(); continue; }
+    flushL(); para.push(l.trim());
+  }
+  flushP(); flushL(); flushT();
+  if(hl){ hl.forEach(w => { if(w.length < 4) return; const re = new RegExp("(>[^<]*?)(" + w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&") + ")", "gi"); out = out.replace(re, "$1<mark>$2</mark>"); }); }
+  return out;
+}
+VIEWS.notes = () => {
+  const t = TOP[view.id];
+  topbar(`Apuntes · Tema ${t.num}`);
+  $("#app").innerHTML = `<div class="stack">
+    <div><div class="eyebrow">Bloque ${t.bloque} · Tema ${t.num}${t.pdf ? " · " + esc(t.pdf) : ""}</div><h2 style="font-size:28px;margin-top:4px">${esc(t.title)}</h2></div>
+    ${t.sections.map(s => `<section class="card" id="sec-${s.id}"><div class="eyebrow">${s.pages ? "Págs. " + esc(s.pages) : "Ampliado"}</div><h3 class="sec-title">${esc(s.title)}</h3><div class="notes">${md(s.notes, view.hl)}</div>
+      <div class="btns" style="margin-top:8px"><button class="btn" data-practice="${s.id}">Practicar este apartado (${(QBY[t.id]||[]).filter(q=>q.s===s.id).length})</button></div></section>`).join("")}
+  </div>`;
+  document.querySelectorAll("[data-practice]").forEach(b => b.onclick = () => { const sid = b.dataset.practice; const ids = sortByLevel(shuffle(QBY[t.id].filter(q=>q.s===sid).map(q=>q.id))); if(!ids.length) return toast("Este apartado no tiene preguntas"); startSession({ title:SEC[sid].title, ids, mode:"study", kind:"topic" }); });
+  if(view.sec){ const el = document.getElementById("sec-" + view.sec); if(el) setTimeout(() => el.scrollIntoView({ block:"start" }), 30); }
+};
+
+/* ---------- configuración de simulacro ---------- */
+VIEWS.examsetup = () => {
+  const hard = view.kind === "hard";
+  topbar(hard ? "Simulacro muy difícil" : "Simulacro");
+  const n = ls("bm-exlen-" + view.kind) || 90;
+  $("#app").innerHTML = `<div class="stack">
+    <h2 style="font-size:30px">${hard ? "Simulacro muy difícil" : "Simulacro de examen"}</h2>
+    <div class="card stack small">
+      <div>Como el primer ejercicio: <b>3 opciones</b>, una correcta. Cada <b>error resta 1/3</b> de acierto y las preguntas en blanco no puntúan. Se aprueba con un <b>5</b>.</div>
+      <div>Reparto: <b>20 % Bloque I</b> y <b>80 % Bloque II</b>, con al menos una pregunta por tema cuando el tamaño lo permite.</div>
+      <div>${hard ? "Solo preguntas de nivel <b>difícil y muy difícil</b>, con más peso del muy difícil." : "Mezcla de niveles con peso en medio y difícil, como un examen real."}</div>
+      <div>No ves si aciertas hasta entregar. Después puedes revisar cada pregunta con su fragmento de apuntes.</div>
+    </div>
+    <div class="eyebrow">Número de preguntas</div>
+    <div class="seg" id="exlen">${[30,60,90].map(k=>`<button aria-pressed="${k===n}" data-n="${k}">${k}</button>`).join("")}</div>
+    <p class="muted small" id="extime" style="margin:0"></p>
+    <button class="btn primary block" id="ex-go">Empezar</button>
+  </div>`;
+  let sel = n;
+  const upd = () => $("#extime").textContent = `Tiempo: ${Math.round(sel*95/90)} minutos.`;
+  upd();
+  document.querySelectorAll("#exlen button").forEach(b => b.onclick = () => { sel = +b.dataset.n; ls("bm-exlen-" + view.kind, sel); document.querySelectorAll("#exlen button").forEach(x => x.setAttribute("aria-pressed", x === b)); upd(); });
+  $("#ex-go").onclick = () => { const ids = buildExam(sel, hard); startSession({ title: hard ? "Simulacro muy difícil" : "Simulacro", ids, mode:"exam", kind: view.kind, minutes: Math.round(sel*95/90) }); };
+};
+function weightedPick(pool, n, weights){
+  // pool: preguntas; weights por nivel
+  const by = {1:[],2:[],3:[],4:[]}; shuffle(pool).forEach(q => by[q.l].push(q));
+  const out = [];
+  while(out.length < n){
+    const avail = [1,2,3,4].filter(l => by[l].length && weights[l] > 0);
+    if(!avail.length) break;
+    const tot = avail.reduce((s,l)=>s+weights[l],0); let r = Math.random()*tot, l = avail[0];
+    for(const k of avail){ r -= weights[k]; if(r <= 0){ l = k; break; } }
+    out.push(by[l].pop());
+  }
+  return out;
+}
+function buildExam(n, hard){
+  const W = hard ? {1:0,2:0,3:4,4:6} : {1:1,2:3.5,3:3.5,4:2};
+  const nI = Math.round(n * 0.2), nII = n - nI;
+  const pickBlock = (bl, k) => {
+    const topics = shuffle(D.topics.filter(t => t.bloque === bl));
+    const chosen = [], used = new Set();
+    // una por tema primero
+    for(const t of topics){ if(chosen.length >= k) break; const p = weightedPick(QBY[t.id].filter(q=>!used.has(q.id)), 1, W); if(p[0]){ chosen.push(p[0]); used.add(p[0].id); } }
+    // resto proporcional al tamaño de cada tema
+    const rest = D.questions.filter(q => TOP[q.t].bloque === bl && !used.has(q.id));
+    weightedPick(rest, k - chosen.length, W).forEach(q => chosen.push(q));
+    return chosen;
+  };
+  return shuffle([...pickBlock("I", nI), ...pickBlock("II", nII)]).map(q => q.id);
+}
+
+/* ---------- sesión de test ---------- */
+let session = null, tickTimer = null;
+function startSession(o){
+  if(!o.ids.length) return toast("No hay preguntas para este test");
+  session = { title:o.title, ids:o.ids, mode:o.mode, kind:o.kind, i:0, ans:{}, flags:{}, order:{}, done:false, start:Date.now(), minutes:o.minutes || 0 };
+  o.ids.forEach(id => session.order[id] = shuffle([0,1,2]));
+  ls("bm-session", session);
+  go({ name:"test" });
+}
+function saveSession(){ ls("bm-session", session); }
+function remaining(){ return session.minutes ? session.minutes*60 - Math.floor((Date.now()-session.start)/1000) : null; }
+function fmtTime(s){ s = Math.max(0,s); const m = Math.floor(s/60), r = s%60; return `${m}:${String(r).padStart(2,"0")}`; }
+VIEWS.test = () => {
+  const s = session; if(!s) return go({ name:"home" }, false);
+  if(s.done){ view = { name:"result" }; return render(); }
+  const id = s.ids[s.i], q = Q[id];
+  if(!q){ s.ids.splice(s.i,1); return render(); }
+  const exam = s.mode === "exam";
+  topbar(s.title, { right: exam ? [{ id:"tb-grid", icon:"grid", label:"Ver todas las preguntas", on: showGrid }] : [] });
+  const ord = s.order[id], chosen = s.ans[id];
+  const answered = chosen !== undefined;
+  const showRes = !exam && answered;
+  const t = TOP[q.t];
+  const opts = ord.map((oi, k) => {
+    let cls = "";
+    if(showRes){ if(oi === q.a) cls = "ok"; else if(oi === chosen) cls = "ko"; }
+    else if(chosen === oi) cls = "sel";
+    return `<button class="opt ${cls}" data-o="${oi}" ${showRes ? "disabled" : ""}><span class="k">${LETTERS[k]}</span><span>${esc(q.o[oi])}</span></button>`;
+  }).join("");
+  const nAns = Object.keys(s.ans).length;
+  $("#app").innerHTML = `<div class="stack">
+    <div class="qhead"><span class="count">${s.i+1} / ${s.ids.length}</span>${exam && s.minutes ? `<span class="timer" id="timer"></span>` : `<span class="small muted">${nAns} respondidas</span>`}</div>
+    <div class="progress"><i style="width:${pct(s.i+1, s.ids.length)}%"></i></div>
+    <div class="qmeta"><span class="chip">Tema ${t.num} · ${esc(t.title)}</span><span class="chip ${q.l===4?"l4":""}">${LVL[q.l]}</span></div>
+    <p class="question">${esc(q.q)}</p>
+    <div class="opts">${opts}</div>
+    ${showRes ? feedbackHTML(q, chosen) : ""}
+    <div class="bottombar"><div class="btns">
+      ${exam ? `<button class="btn flag" id="flag" aria-pressed="${!!s.flags[id]}">Dudosa</button>` : ""}
+      ${exam && answered ? `<button class="btn ghost" id="clear">Dejar en blanco</button>` : ""}
+      ${s.i > 0 ? `<button class="btn" id="prev">Anterior</button>` : ""}
+      ${s.i < s.ids.length-1 ? `<button class="btn primary" id="next" ${!exam && !answered ? "disabled" : ""}>Siguiente</button>` : `<button class="btn primary" id="finish" ${!exam && !answered ? "disabled" : ""}>${exam ? "Entregar" : "Ver resultado"}</button>`}
+    </div></div>
+  </div>`;
+  document.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    const oi = +b.dataset.o;
+    if(exam){ if(s.ans[id] === oi) delete s.ans[id]; else s.ans[id] = oi; saveSession(); render(); return; }
+    if(answered) return;
+    s.ans[id] = oi; record(id, oi === q.a); saveSession(); render();
+    const fb = $(".feedback"); if(fb) fb.scrollIntoView({ block:"nearest", behavior:"smooth" });
+  });
+  const nav = d => { s.i += d; saveSession(); render(); window.scrollTo(0,0); };
+  if($("#next")) $("#next").onclick = () => nav(1);
+  if($("#prev")) $("#prev").onclick = () => nav(-1);
+  if($("#finish")) $("#finish").onclick = () => exam ? confirmSubmit() : finish();
+  if($("#flag")) $("#flag").onclick = () => { s.flags[id] = !s.flags[id]; saveSession(); render(); };
+  if($("#clear")) $("#clear").onclick = () => { delete s.ans[id]; saveSession(); render(); };
+  if($("#see-notes")) $("#see-notes").onclick = () => openSource(q);
+  if(exam && s.minutes){ const tick = () => { const r = remaining(); const el = $("#timer"); if(el){ el.textContent = fmtTime(r); el.classList.toggle("low", r < 300); } if(r <= 0){ clearInterval(tickTimer); toast("Tiempo agotado"); finish(); } }; tick(); tickTimer = setInterval(tick, 1000); }
+};
+function feedbackHTML(q, chosen){
+  const ok = chosen === q.a;
+  return `<div class="feedback ${ok?"good":"bad"} stack" style="gap:10px">
+    <div><h3>${ok ? "Correcta" : "Incorrecta"}</h3>${ok ? "" : `<p class="small">La respuesta correcta es: <b>${esc(q.o[q.a])}</b></p>`}</div>
+    <p>${esc(q.e)}</p>
+    <div class="quote">“${esc(q.c)}”<small>${q.p ? `${esc(TOP[q.t].pdf || "")} · pág. ${q.p}` : "Apuntes ampliados"} · ${esc(SEC[q.s]?.title || "")}</small></div>
+    <button class="btn" id="see-notes">Ver apuntes de este apartado</button>
+  </div>`;
+}
+function keywords(q){ const stop = new Set("para como esta este estos estas sobre entre desde hasta cuando donde segun según tiene tienen debe deben puede pueden será sera mediante otros otras cual cuales tambien también siempre".split(" "));
+  return [...new Set((q.c||"").split(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9%]+/).filter(w => w.length >= 6 && !stop.has(w.toLowerCase())))].slice(0,8); }
+function openSource(q){
+  const s = SEC[q.s], t = TOP[q.t];
+  openSheet(s ? s.title : "Apuntes", `
+    <div class="stack">
+      <div class="eyebrow">Tema ${t.num} · ${esc(t.title)}</div>
+      <div><div class="eyebrow" style="margin-bottom:6px">Fragmento del que sale la pregunta</div>
+      <div class="quote">“${esc(q.c)}”<small>${q.p ? `${esc(t.pdf || "")} · página ${q.p}` : "Tema ampliado: fragmento de los apuntes"}</small></div></div>
+      <div class="card"><div class="eyebrow">${s && s.pages ? "Apuntes · págs. " + esc(s.pages) : "Apuntes"}</div><h3 class="sec-title" style="margin:2px 0 8px">${esc(s ? s.title : "")}</h3><div class="notes">${s ? md(s.notes, keywords(q)) : ""}</div></div>
+      <button class="btn" id="sh-topic">Abrir todos los apuntes del tema</button>
+    </div>`);
+  $("#sh-topic").onclick = () => { closeSheet(); go({ name:"notes", id:t.id, sec:q.s }); };
+}
+function openSheet(title, html){
+  const root = $("#sheet-root");
+  root.innerHTML = `<div class="sheet-bg" id="sh-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sh-head"><h2>${esc(title)}</h2><button class="iconbtn" id="sh-x" aria-label="Cerrar">${ICON.close}</button></div><div class="sh-body">${html}</div></div></div>`;
+  $("#sh-x").onclick = closeSheet;
+  $("#sh-bg").onclick = e => { if(e.target.id === "sh-bg") closeSheet(); };
+  document.body.style.overflow = "hidden";
+}
+function closeSheet(){ $("#sheet-root").innerHTML = ""; document.body.style.overflow = ""; }
+function showGrid(){
+  const s = session;
+  openSheet("Todas las preguntas", `<div class="stack">
+    <p class="small muted" style="margin:0">${Object.keys(s.ans).length} respondidas · ${Object.values(s.flags).filter(Boolean).length} dudosas · ${s.ids.length - Object.keys(s.ans).length} en blanco</p>
+    <div class="grid-nav">${s.ids.map((id,i)=>`<button data-i="${i}" class="${s.ans[id]!==undefined?"ans":""} ${s.flags[id]?"flg":""} ${i===s.i?"cur":""}">${i+1}</button>`).join("")}</div>
+    <button class="btn primary" id="sh-submit">Entregar examen</button></div>`);
+  document.querySelectorAll(".grid-nav button").forEach(b => b.onclick = () => { s.i = +b.dataset.i; saveSession(); closeSheet(); render(); window.scrollTo(0,0); });
+  $("#sh-submit").onclick = () => { closeSheet(); confirmSubmit(); };
+}
+function confirmSubmit(){
+  const s = session, blank = s.ids.length - Object.keys(s.ans).length;
+  openSheet("¿Entregar el examen?", `<div class="stack"><p style="margin:0">${blank ? `Te quedan <b>${blank}</b> preguntas en blanco.` : "Has respondido todas las preguntas."} ${Object.values(s.flags).filter(Boolean).length ? `Tienes ${Object.values(s.flags).filter(Boolean).length} marcadas como dudosas.` : ""}</p>
+    <div class="btns"><button class="btn" id="c-no">Seguir</button><button class="btn primary" id="c-yes">Entregar</button></div></div>`);
+  $("#c-no").onclick = closeSheet; $("#c-yes").onclick = () => { closeSheet(); finish(); };
+}
+function finish(){
+  const s = session; if(s.done) return go({ name:"result" }, false);
+  clearInterval(tickTimer);
+  let ok = 0, ko = 0;
+  s.ids.forEach(id => { const a = s.ans[id]; if(a === undefined) return; const good = a === Q[id].a; if(good) ok++; else ko++; if(s.mode === "exam") record(id, good); });
+  const blank = s.ids.length - ok - ko;
+  const net = ok - ko/3, nota = Math.max(0, net / s.ids.length * 10);
+  s.done = true; s.res = { ok, ko, blank, net, nota, secs: Math.floor((Date.now()-s.start)/1000) };
+  if(s.mode === "exam") { P.exams.push({ at:Date.now(), kind:s.kind, n:s.ids.length, ok, ko, blank, nota: Math.round(nota*100)/100 }); P.exams = P.exams.slice(-60); scheduleSave(); }
+  ls("bm-session", null);
+  view = { name:"result" }; render(); window.scrollTo(0,0);
+}
+
+/* ---------- resultado ---------- */
+VIEWS.result = () => {
+  const s = session; const r = s.res;
+  topbar("Resultado");
+  const pass = r.nota >= 5;
+  const byTopic = {};
+  s.ids.forEach(id => { const q = Q[id]; const b = byTopic[q.t] ||= { ok:0, n:0 }; b.n++; if(s.ans[id] === q.a) b.ok++; });
+  const weak = Object.entries(byTopic).filter(([,b]) => b.n >= 2).sort((a,b) => a[1].ok/a[1].n - b[1].ok/b[1].n).slice(0,4);
+  const filter = view.filter || (s.mode === "exam" ? "ko" : "all");
+  const items = s.ids.filter(id => { const a = s.ans[id], q = Q[id]; if(filter === "ko") return a !== undefined && a !== q.a; if(filter === "blank") return a === undefined; return true; });
+  $("#app").innerHTML = `<div class="stack">
+    <div class="card stack">
+      <div class="eyebrow">${esc(s.title)}</div>
+      <div class="score"><b>${fmt1(r.nota)}</b><span class="verdict ${pass?"pass":"fail"}">${pass ? "Apto" : "No apto"}</span></div>
+      <div class="kv"><div><b>${r.ok}</b><span>aciertos</span></div><div><b>${r.ko}</b><span>errores</span></div><div><b>${r.blank}</b><span>en blanco</span></div><div><b>${fmt1(r.net)}</b><span>netas</span></div></div>
+      <p class="small muted" style="margin:0">Nota = (aciertos − errores ÷ 3) ÷ ${s.ids.length} × 10. Tiempo: ${fmtTime(r.secs)}.</p>
+    </div>
+    ${weak.length ? `<div class="eyebrow">Temas a reforzar en este test</div><div class="list">${weak.map(([tid,b]) => `<button class="row" data-topic="${tid}"><div class="num">${TOP[tid].num}</div><div class="txt"><b>${esc(TOP[tid].title)}</b><small>${b.ok} de ${b.n} correctas</small></div>${chev}</button>`).join("")}</div>` : ""}
+    <div class="eyebrow">Revisión</div>
+    <div class="seg" id="rf">${[["ko","Fallos"],["blank","En blanco"],["all","Todas"]].map(([k,l])=>`<button aria-pressed="${k===filter}" data-f="${k}">${l}</button>`).join("")}</div>
+    ${items.length ? items.map(id => reviewItem(id, s)).join("") : `<div class="empty">Nada en esta lista.</div>`}
+    <div class="btns">
+      ${s.ids.some(id => s.ans[id] !== Q[id].a) ? `<button class="btn" id="redo">Repetir fallos y blancos</button>` : ""}
+      <button class="btn primary" id="home">Volver al inicio</button>
+    </div>
+  </div>`;
+  document.querySelectorAll("#rf button").forEach(b => b.onclick = () => { view.filter = b.dataset.f; render(); });
+  document.querySelectorAll("[data-topic]").forEach(b => b.onclick = () => go({ name:"topic", id:b.dataset.topic }));
+  document.querySelectorAll("[data-src]").forEach(b => b.onclick = () => openSource(Q[b.dataset.src]));
+  $("#home").onclick = () => { stack = []; view = { name:"home" }; render(); window.scrollTo(0,0); };
+  if($("#redo")) $("#redo").onclick = () => startSession({ title:"Repaso del test", ids: s.ids.filter(id => s.ans[id] !== Q[id].a), mode:"study", kind:"fails" });
+};
+function reviewItem(id, s){
+  const q = Q[id], a = s.ans[id], ord = s.order[id];
+  const letter = oi => LETTERS[ord.indexOf(oi)];
+  const st = a === undefined ? "En blanco" : a === q.a ? "Correcta" : "Incorrecta";
+  return `<div class="review">
+    <div class="small muted">${s.ids.indexOf(id)+1}. Tema ${TOP[q.t].num} · ${LVL[q.l]} · <b>${st}</b></div>
+    <div class="q">${esc(q.q)}</div>
+    ${a !== undefined && a !== q.a ? `<div class="a ko">Tu respuesta: ${letter(a)}) ${esc(q.o[a])}</div>` : ""}
+    <div class="a ok">Correcta: ${letter(q.a)}) ${esc(q.o[q.a])}</div>
+    <div class="small">${esc(q.e)}</div>
+    <button class="linkbtn" data-src="${id}">Ver fragmento y apuntes${q.p ? " (pág. " + q.p + ")" : ""}</button>
+  </div>`;
+}
+
+/* ---------- buscar ---------- */
+VIEWS.search = () => {
+  topbar("Buscar en el temario");
+  $("#app").innerHTML = `<div class="stack"><input class="search" id="sq" type="search" placeholder="Ej.: flashover, plazo de alzada, 10,33 m…" value="${esc(view.q||"")}" autocomplete="off"><div id="sres" class="stack"></div></div>`;
+  const inp = $("#sq"); let tmr;
+  const run = () => {
+    const raw = inp.value.trim(); view.q = raw;
+    const n = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+    const k = n(raw); const out = $("#sres");
+    if(k.length < 3){ out.innerHTML = `<p class="muted small">Escribe al menos 3 letras. Busca en apuntes y preguntas de todos los temas.</p>`; return; }
+    const secs = []; for(const t of D.topics) for(const s of t.sections){ const i = n(s.notes).indexOf(k); if(i >= 0 || n(s.title).includes(k)){ const plain = s.notes.replace(/[*#|]/g,""); const j = Math.max(0, n(plain).indexOf(k) - 50); secs.push({ t, s, snip: plain.slice(j, j + 160) }); } }
+    const qs = D.questions.filter(q => n(q.q + " " + q.o.join(" ")).includes(k)).slice(0, 30);
+    out.innerHTML = `<div class="eyebrow">Apuntes (${secs.length})</div>${secs.length ? `<div class="list">${secs.slice(0,40).map(r => `<button class="row" data-t="${r.t.id}" data-s="${r.s.id}"><div class="txt"><b>${esc(r.s.title)}</b><small>Tema ${r.t.num} · …${esc(r.snip)}…</small></div>${chev}</button>`).join("")}</div>` : `<p class="muted small">Sin resultados.</p>`}
+      <div class="eyebrow">Preguntas (${qs.length}${qs.length===30?"+":""})</div>${qs.length ? `<div class="list">${qs.map(q => `<button class="row" data-q="${q.id}"><div class="txt"><b>${esc(q.q)}</b><small>Tema ${TOP[q.t].num} · ${LVL[q.l]}</small></div>${chev}</button>`).join("")}</div>` : `<p class="muted small">Sin resultados.</p>`}`;
+    out.querySelectorAll("[data-s]").forEach(b => b.onclick = () => go({ name:"notes", id:b.dataset.t, sec:b.dataset.s, hl:[raw] }));
+    out.querySelectorAll("[data-q]").forEach(b => b.onclick = () => startSession({ title:"Pregunta buscada", ids:[b.dataset.q], mode:"study", kind:"search" }));
+  };
+  inp.oninput = () => { clearTimeout(tmr); tmr = setTimeout(run, 200); };
+  run();
+};
+
+/* ---------- estadísticas ---------- */
+VIEWS.stats = () => {
+  topbar("Estadísticas");
+  const ex = P.exams.slice(-30);
+  const rows = D.topics.slice().sort((a,b) => (a.bloque+String(a.num).padStart(2,"0")).localeCompare(b.bloque+String(b.num).padStart(2,"0"))).map(t => { const s = topicStats(t.id); return { t, s, acc: s.seen ? s.ok/s.seen : -1 }; });
+  const lvls = [1,2,3,4].map(l => { let seen=0, ok=0, n=0; D.questions.forEach(q => { if(q.l!==l) return; n++; const r = P.q[q.id]; if(r){ seen++; if(r[2]) ok++; } }); return { l, seen, ok, n }; });
+  $("#app").innerHTML = `<div class="stack">
+    <div class="eyebrow">Simulacros (${P.exams.length})</div>
+    ${ex.length ? `<div class="card"><div class="hist" role="img" aria-label="Notas de los últimos simulacros">${ex.map(e => `<i class="${e.nota<5?"fail":""}" style="height:${Math.max(4, e.nota*10)}%" title="${fmt1(e.nota)}"></i>`).join("")}</div><p class="small muted" style="margin:8px 0 0">Últimos ${ex.length} simulacros y exámenes. En gris, los no aptos. Media: <b>${fmt1(ex.reduce((s,e)=>s+e.nota,0)/ex.length)}</b></p></div>
+      <div class="list">${ex.slice().reverse().slice(0,10).map(e => `<div class="row" style="cursor:default"><div class="txt"><b>${e.kind==="hard"?"Muy difícil":e.kind==="sim"?"Simulacro":"Examen de tema"} · ${e.n} preguntas</b><small>${new Date(e.at).toLocaleDateString("es-ES",{day:"numeric",month:"short"})} · ${e.ok} aciertos, ${e.ko} errores, ${e.blank} en blanco</small></div><b style="font-family:var(--display);font-size:22px">${fmt1(e.nota)}</b></div>`).join("")}</div>` : `<div class="card empty">Aún no has hecho ningún simulacro.</div>`}
+    <div class="eyebrow">Por nivel</div>
+    <div class="list">${lvls.map(x => `<div class="row" style="cursor:default"><div class="txt"><b>${LVL[x.l]}</b><small>${x.seen} de ${x.n} vistas · ${x.seen ? pct(x.ok,x.seen)+"% acierto" : "sin datos"}</small><div class="bar"><i class="g" style="width:${pct(x.ok,x.n)}%"></i><i class="r" style="width:${pct(x.seen-x.ok,x.n)}%"></i></div></div></div>`).join("")}</div>
+    <div class="eyebrow">Por tema</div>
+    <div class="list">${rows.map(({t,s}) => `<button class="row" data-topic="${t.id}"><div class="num">${t.bloque==="I"?"I-":""}${t.num}</div><div class="txt"><b>${esc(t.title)}</b><small>${s.seen}/${s.n} vistas · ${s.seen ? pct(s.ok,s.seen)+"% acierto" : "sin empezar"}</small><div class="bar"><i class="g" style="width:${pct(s.ok,s.n)}%"></i><i class="r" style="width:${pct(s.ko,s.n)}%"></i></div></div>${chev}</button>`).join("")}</div>
+    <div class="eyebrow">Copia de seguridad</div>
+    <div class="card stack small"><div>Tu progreso se guarda solo en este iPhone. Si borras los datos de Safari o cambias de móvil se pierde, así que exporta una copia de vez en cuando y guárdala en Archivos o iCloud.</div>
+    <div class="btns"><button class="btn" id="exp">Exportar progreso</button><label class="btn" for="imp">Importar copia</label><input id="imp" type="file" accept="application/json,.json" hidden></div></div>
+    <button class="btn ghost" id="reset">Borrar todo mi progreso</button>
+  </div>`;
+  document.querySelectorAll("[data-topic]").forEach(b => b.onclick = () => go({ name:"topic", id:b.dataset.topic }));
+  $("#exp").onclick = async () => {
+    const txt = JSON.stringify(P), name = "progreso-bombero-" + new Date().toISOString().slice(0,10) + ".json";
+    const file = new File([txt], name, { type:"application/json" });
+    try{ if(navigator.canShare && navigator.canShare({ files:[file] })){ await navigator.share({ files:[file], title:"Progreso Bombero Test" }); return; } }catch(e){ if(e && e.name === "AbortError") return; }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  };
+  $("#imp").onchange = async e => {
+    const f = e.target.files[0]; if(!f) return;
+    try{ const d = JSON.parse(await f.text()); if(!d || !d.q) throw 0; merge(d); scheduleSave(); toast("Copia importada"); render(); }
+    catch(err){ toast("Ese archivo no es una copia válida"); }
+  };
+  $("#reset").onclick = () => openSheet("¿Borrar el progreso?", `<div class="stack"><p style="margin:0">Se borrarán tus respuestas, fallos y notas de simulacros de este iPhone. No se puede deshacer.</p><div class="btns"><button class="btn" id="r-no">Cancelar</button><button class="btn primary" id="r-yes">Borrar</button></div></div>`) || ($("#r-no").onclick = closeSheet, $("#r-yes").onclick = () => { P = { q:{}, exams:[], v:1 }; dirty = true; scheduleSave(); flush(); closeSheet(); toast("Progreso borrado"); render(); });
+};
+
+/* ---------- arranque ---------- */
+if("serviceWorker" in navigator){ window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); }
+(async () => {
+  loadLocal();
+  try{ await loadData(); }
+  catch(e){ $("#app").innerHTML = `<div class="empty">No se pudo cargar el temario (${esc(e.message)}). Recarga la página.</div>`; return; }
+  const r = ls("bm-session"); if(r && !r.done && r.ids && r.ids.every(id => Q[id])) session = r;
+  render();
+  initStore();
+})();
+</script>
+
+</body>
+</html>
