@@ -685,6 +685,24 @@ VIEWS.stats = () => {
 };
 
 /* ---------- arranque ---------- */
+/* Avisar si el navegador no conserva datos (navegación privada o navegador dentro de otra app) */
+async function checkStorage(){
+  let ok = true;
+  try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); }catch(e){ ok = false; }
+  let persisted = false;
+  try{ if(navigator.storage && navigator.storage.persist) persisted = await navigator.storage.persist(); }catch(e){}
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const ua = navigator.userAgent || "";
+  const inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|GSA\/|Claude|wv\)/i.test(ua) || (/iPhone|iPad/.test(ua) && !/Safari\//.test(ua) && !standalone);
+  if(!ok || inApp){
+    const b = document.createElement("div");
+    b.className = "card small"; b.style.cssText = "margin:12px auto 0;max-width:680px;border-color:var(--warn);background:var(--warn-soft);color:var(--ink)";
+    b.innerHTML = !ok ? "<b>Este navegador no guarda tu progreso</b> (¿navegación privada?). Ábrela en Safari normal y añádela a la pantalla de inicio."
+      : "<b>Estás dentro del navegador de otra app</b> y al cerrarla se puede borrar tu progreso. Ábrela en Safari (botón ··· o la brújula → «Abrir en Safari») y añádela a la pantalla de inicio.";
+    const app = document.getElementById("app"); app.parentNode.insertBefore(b, app);
+  }
+}
+checkStorage();
 if("serviceWorker" in navigator){ window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); }
 (async () => {
   loadLocal();
