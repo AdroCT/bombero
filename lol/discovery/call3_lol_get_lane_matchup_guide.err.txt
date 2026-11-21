@@ -1,1 +1,0 @@
-Error: tools/call: {"code":-32600,"message":"{\"my_champion\":[\"The my champion field is required.\"],\"opponent_champion\":[\"The opponent champion field is required.\"]}"}
