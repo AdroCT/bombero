@@ -158,7 +158,7 @@ let pick = ls("lol-pick") || { id:null, pos:null, q:"" };
 function home(){
   topbar("Counters LoL");
   const sel = pick.id && CH[pick.id];
-  const lanes = POS.map(([p, n]) => { const ok = !sel || CH[pick.id].positions.some(x => x.pos === p); return `<button class="lane" data-pos="${p}" aria-pressed="${pick.pos === p}" ${ok ? "" : "disabled"}>${LANE_ICON[p]}${n}</button>`; }).join("");
+  const lanes = POS.map(([p, n]) => { return `<button class="lane" data-pos="${p}" aria-pressed="${pick.pos === p}">${LANE_ICON[p]}${n}</button>`; }).join("");
   $("#app").innerHTML = `
     <div class="eyebrow">1 · Línea</div>
     <div class="lanes">${lanes}</div>
@@ -180,7 +180,7 @@ function home(){
   };
   draw();
   $("#q").oninput = e => { pick.q = e.target.value; ls("lol-pick", pick); draw(); };
-  document.querySelectorAll(".lane").forEach(b => b.onclick = () => { pick.pos = pick.pos === b.dataset.pos ? null : b.dataset.pos; ls("lol-pick", pick); home(); });
+  document.querySelectorAll(".lane").forEach(b => b.onclick = () => { pick.pos = pick.pos === b.dataset.pos ? null : b.dataset.pos; if(pick.pos && pick.id && CH[pick.id] && !CH[pick.id].positions.some(x => x.pos === pick.pos)) pick.id = null; ls("lol-pick", pick); home(); });
 }
 
 async function loadM(id, pos){
@@ -210,9 +210,20 @@ async function champ(){
     <div class="eyebrow">Counters de ${esc(c.name)} · elige uno</div>
     ${d.counters.length ? `<div class="list">${d.counters.filter(r => r.myWr < 0.5).map(r => row(r, true)).join("")}</div>` : `<div class="empty">No hay suficientes partidas para calcular counters fiables.</div>`}
     <p class="small muted" style="margin:0">Porcentaje = victorias del counter contra ${esc(c.name)} en ${esc(POSN[pos])}, según OP.GG (mínimo 150 partidas cuando hay datos suficientes).</p>
-    ${d.easy.length ? `<div class="eyebrow">Contra quién gana ${esc(c.name)} (evítalos)</div><div class="list">${d.easy.map(r => row(r, false)).join("")}</div>` : ""}`;
-  document.querySelectorAll(".row[data-cid]:not([data-easy])").forEach(b => b.onclick = () => go(`v-${c.id}-${pos}-${b.dataset.cid}`));
-  document.querySelectorAll(".row[data-easy]").forEach(b => b.style.cursor = "default");
+    ${d.easy.length ? `<div class="eyebrow">Contra quién gana ${esc(c.name)} (evítalos)</div><div class="list">${d.easy.map(r => row(r, false)).join("")}</div>` : ""}
+    <div class="eyebrow">¿Juegas otro campeón? Busca tu enfrentamiento</div>
+    <input class="search" id="q2" type="search" placeholder="Tu campeón contra ${esc(c.name)}…" autocomplete="off" aria-label="Buscar tu campeón">
+    <div class="list" id="found"></div>`;
+  document.querySelectorAll(".row[data-cid]").forEach(b => b.onclick = () => go(`v-${c.id}-${pos}-${b.dataset.cid}`));
+  const nrm = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+  const allRows = Object.fromEntries((d.rows || []).map(([id, g, wr]) => [id, { g, wr }]));
+  $("#q2").oninput = e => {
+    const q = nrm(e.target.value.trim());
+    if(!q){ $("#found").innerHTML = ""; return; }
+    const list = M.champs.filter(o => o.id !== c.id && (nrm(o.name).includes(q) || nrm(o.en).includes(q))).slice(0, 8);
+    $("#found").innerHTML = list.length ? list.map(o => { const a = allRows[o.id]; return `<button class="row" data-cid="${o.id}"><img loading="lazy" src="${champImg(o.id)}" alt=""><div class="txt"><b>${esc(o.name)}</b><small>${a ? a.g.toLocaleString("es-ES") + " partidas contra " + esc(c.name) : "sin partidas registradas en esta línea"}</small></div>${a ? `<div class="wr ${a.wr < 0.5 ? "bad" : "good"}">${pct(1 - a.wr)}<small>gana ${esc(o.name)}</small></div>` : ""}</button>`; }).join("") : `<div class="empty">Ningún campeón con ese nombre.</div>`;
+    document.querySelectorAll("#found .row").forEach(b => b.onclick = () => go(`v-${c.id}-${pos}-${b.dataset.cid}`));
+  };
 }
 
 /* ---------- counter elegido: build, runas, habilidades y plan ---------- */
@@ -222,21 +233,24 @@ async function vs(){
   let d; try{ d = await loadM(X.id, pos); }catch(e){ $("#app").innerHTML = `<div class="empty">Sin datos para este enfrentamiento.</div>`; return; }
   const gk = pos + "/" + X.id;
   if(!(gk in GUIDES)){ try{ const gr = await fetch(`guides/${pos}/${X.id}.json`); GUIDES[gk] = gr.ok ? await gr.json() : null; }catch(e){ GUIDES[gk] = null; } }
-  const r = d.counters.find(x => x.id === C.id) || { myWr: null, g: 0 };
-  const G = d.vs[C.id];
+  const rw = (d.rows || []).find(x => x[0] === C.id);
+  const r = d.counters.find(x => x.id === C.id) || d.easy.find(x => x.id === C.id) || (rw ? { myWr: rw[2], g: rw[1] } : { myWr: null, g: 0 });
+  let G = d.vs[C.id], generic = false;
+  if(!G){ try{ const dc = await loadM(C.id, pos); if(dc.own){ G = dc.own; generic = true; } }catch(e){} }
   const tab = view.tab || "plan";
   $("#app").innerHTML = `
     <div class="vs"><div class="side me"><img src="${champImg(C.id)}" alt=""><b>${esc(C.name)}</b><span class="chip">Tú</span></div>
       <div class="mid">VS</div>
       <div class="side them"><img src="${champImg(X.id)}" alt=""><b>${esc(X.name)}</b><span class="chip">Rival · ${esc(POSN[pos])}</span></div></div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
-      <div><span class="big good">${pct(r.myWr == null ? null : 1 - r.myWr)}</span> <span class="muted small">de victorias de ${esc(C.name)} en esta línea</span></div>
+      <div><span class="big ${r.myWr != null && r.myWr > 0.5 ? "bad" : "good"}">${pct(r.myWr == null ? null : 1 - r.myWr)}</span> <span class="muted small">de victorias de ${esc(C.name)} en esta línea</span></div>
       <span class="small muted">${(r.g || 0).toLocaleString("es-ES")} partidas · parche ${esc(d.patch)}</span></div>
     <div class="tabs" role="tablist">${[["plan","Plan"],["build","Build"],["runas","Runas"],["skills","Habilidades"]].map(([k,l]) => `<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join("")}</div>
+    ${generic ? `<p class="small" style="margin:0;color:var(--warn)">OP.GG no tiene builds de este enfrentamiento concreto: build, runas y habilidades son las habituales de ${esc(C.name)} en ${esc(POSN[pos])}.</p>` : ""}
     <div id="tab"></div>`;
   document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { view.tab = b.dataset.tab; vs(); });
   const T = $("#tab");
-  if(!G){ T.innerHTML = `<div class="empty">OP.GG no tiene suficientes partidas de este enfrentamiento para dar una build fiable.</div>${planHTML(C, X, null)}`; return; }
+  if(!G){ T.innerHTML = `<div class="empty">${esc(C.name)} casi no se juega en ${esc(POSN[pos])}: no hay build fiable en OP.GG.</div>${planHTML(C, X, null, r)}`; return; }
   if(tab === "build") T.innerHTML = buildHTML(G, C, X);
   if(tab === "runas") T.innerHTML = runesHTML(G);
   if(tab === "skills") T.innerHTML = skillsHTML(G, C);
@@ -328,7 +342,10 @@ function planHTML(C, X, G, r){
   const G0 = GUIDES[view.pos + "/" + X.id]?.[C.id];
   const parts = [];
   if(G0) parts.push(guideHTML(G0));
-  else parts.push(`<div class="card plan"><h3>Guía del enfrentamiento</h3><p class="small muted">Todavía no hay guía escrita para este enfrentamiento; abajo tienes los datos exactos para prepararlo.</p></div>`);
+  else parts.push(`<div class="card plan"><h3>Guía del enfrentamiento</h3><p class="small muted">Este enfrentamiento no tiene guía escrita (solo los counters la tienen). Abajo tienes los datos exactos para prepararlo, o búscalo en Google.</p></div>`);
+  const lane = { top:"top", jungle:"jungla", mid:"mid", adc:"adc", support:"support" }[view.pos] || "";
+  const gq = encodeURIComponent(`cómo jugar ${C.en} contra ${X.en} ${lane} league of legends consejos`);
+  parts.push(`<a class="card" href="https://www.google.com/search?q=${gq}" target="_blank" rel="noopener" style="display:block;text-decoration:none;color:var(--ink);border-color:var(--cyan)"><h3 style="color:var(--cyan)">Buscar ${esc(C.name)} vs ${esc(X.name)} en Google ›</h3><p class="small muted" style="margin:0">Abre Google con la búsqueda hecha; arriba suele salir el resumen de su IA y vídeos del enfrentamiento.</p></a>`);
   parts.push(`<div class="eyebrow" style="margin-top:6px">Datos exactos del enfrentamiento</div>`);
   parts.push(statsHTML(C, X), cdHTML(C, X), spikesHTML(C, G));
   if(G && G.len && G.len.length > 1){

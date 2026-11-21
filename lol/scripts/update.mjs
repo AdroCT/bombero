@@ -133,7 +133,9 @@ await pool(todo, async ([c, pos]) => {
     }
     save(`${OUT}/m/${pos}/${c.id}.json`, { id: c.id, pos, patch,
       counters: counters.map(r => ({ id: r.id, g: r.g, myWr: r3(r.wr) })), easy: easy.map(r => ({ id: r.id, g: r.g, myWr: r3(r.wr) })),
-      all: rows.length, vs });
+      all: rows.length, vs,
+      // Todos los enfrentamientos (id, partidas, winrate del campeón contra ese rival) y su build habitual en la línea
+      rows: rows.map(r => [r.id, r.g, r3(r.wr)]), own: trimGuide(g) });
   } catch (e) { fails++; console.log("Fallo", c.name, pos, String(e).slice(0, 160)); }
   if (++done % 20 === 0) console.log(`${done}/${todo.length}`);
 });
