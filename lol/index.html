@@ -208,7 +208,7 @@ async function champ(){
       <div class="wr ${isCounter ? "bad" : "good"}">${pct(isCounter ? theirWr : r.myWr)}<small>${isCounter ? "gana " + esc(o.name) : "gana " + esc(c.name)}</small></div></button>`; };
   $("#body").innerHTML = `
     <div class="eyebrow">Counters de ${esc(c.name)} · elige uno</div>
-    ${d.counters.length ? `<div class="list">${d.counters.map(r => row(r, true)).join("")}</div>` : `<div class="empty">No hay suficientes partidas para calcular counters fiables.</div>`}
+    ${d.counters.length ? `<div class="list">${d.counters.filter(r => r.myWr < 0.5).map(r => row(r, true)).join("")}</div>` : `<div class="empty">No hay suficientes partidas para calcular counters fiables.</div>`}
     <p class="small muted" style="margin:0">Porcentaje = victorias del counter contra ${esc(c.name)} en ${esc(POSN[pos])}, según OP.GG (mínimo 150 partidas cuando hay datos suficientes).</p>
     ${d.easy.length ? `<div class="eyebrow">Contra quién gana ${esc(c.name)} (evítalos)</div><div class="list">${d.easy.map(r => row(r, false)).join("")}</div>` : ""}`;
   document.querySelectorAll(".row[data-cid]:not([data-easy])").forEach(b => b.onclick = () => go(`v-${c.id}-${pos}-${b.dataset.cid}`));
@@ -334,7 +334,7 @@ function planHTML(C, X, G, r){
   if(G && G.len && G.len.length > 1){
     const lab = ["<25′","25-30′","30-35′","35-40′","40′+"];
     const max = Math.max(...G.len.map(x => x.wr || 0)), min = Math.min(...G.len.map(x => x.wr || 1));
-    parts.push(`<div class="card plan"><h3>Victorias de ${esc(C.name)} según duración</h3>
+    parts.push(`<div class="card plan"><h3>Victorias de ${esc(C.name)} según duración de la partida</h3><p class="small muted" style="margin:0">Todas sus partidas en esta línea, no solo contra ${esc(X.name)}: indica si escala o si gana pronto.</p>
       <div class="bars">${G.len.map((x, i) => `<div><span>${pct(x.wr)}</span><i style="height:${10 + ((x.wr - min) / Math.max(0.001, max - min)) * 40}px"></i><span>${lab[i] || ""}</span></div>`).join("")}</div></div>`);
   }
   if(tx.passive) parts.push(`<div class="card plan"><h3>Pasiva de ${esc(X.name)}: ${esc(tx.passive.n)}</h3><p class="small">${esc(strip(tx.passive.d))}</p></div>`);

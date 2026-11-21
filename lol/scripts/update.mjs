@@ -122,7 +122,8 @@ await pool(todo, async ([c, pos]) => {
     const rows = (g.data?.counters || []).map(r => ({ id: r.champion_id, g: r.play, wr: r.play ? r.win / r.play : null })).filter(r => r.wr != null && byId[r.id]);
     let pool_ = rows.filter(r => r.g >= MIN_GAMES); if (pool_.length < N_COUNTERS) pool_ = rows.filter(r => r.g >= MIN_GAMES_FALLBACK);
     const sorted = [...pool_].sort((a, b) => a.wr - b.wr);
-    const counters = sorted.slice(0, N_COUNTERS), easy = sorted.slice(-N_EASY).reverse();
+    // Solo son counters los que de verdad ganan al campeón (su winrate contra él < 50 %)
+    const counters = sorted.filter(r => r.wr < 0.5).slice(0, N_COUNTERS), easy = sorted.filter(r => r.wr > 0.5).slice(-N_EASY).reverse();
     const vs = {};
     for (const k of counters) {
       if (!opName[k.id]) continue;
