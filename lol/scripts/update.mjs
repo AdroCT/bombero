@@ -44,8 +44,9 @@ console.log("Parche OP.GG:", patch, "| anterior:", prev?.patch, "| antigüedad (
 if (!force && prev && prev.patch === patch && ageDays < 3) { console.log("Sin cambios de parche y datos recientes: no se actualiza."); process.exit(0); }
 
 // 2) Campeones (nombres en inglés y español) y Data Dragon
-const champsEn = (await op("lol_list_champions", { lang: "en_US", desired_output_fields: ["data.champions[].{champion_id,key,name}"] })).data.champions;
-const champsEs = (await op("lol_list_champions", { lang: LANG, desired_output_fields: ["data.champions[].{champion_id,key,name}"] })).data.champions;
+const dedupe = arr => [...new Map(arr.map(c => [c.champion_id, c])).values()];
+const champsEn = dedupe((await op("lol_list_champions", { lang: "en_US", desired_output_fields: ["data.champions[].{champion_id,key,name}"] })).data.champions);
+const champsEs = dedupe((await op("lol_list_champions", { lang: LANG, desired_output_fields: ["data.champions[].{champion_id,key,name}"] })).data.champions);
 const esName = Object.fromEntries(champsEs.map(c => [c.champion_id, c.name]));
 const ddv = (await (await fetch("https://ddragon.leagueoflegends.com/api/versions.json")).json())[0];
 const runesDD = await (await fetch(`https://ddragon.leagueoflegends.com/cdn/${ddv}/data/es_ES/runesReforged.json`)).json();
@@ -88,7 +89,7 @@ for (let i = 0; i < ids.length; i += 10) {
 }
 
 // 5) Campeones y líneas que se juegan
-const champs = champsEn.map(c => ({ id: c.champion_id, key: c.key, name: esName[c.champion_id] || c.name, en: c.name, positions: [] }));
+const champs = champsEn.filter(c => c.champion_id > 0).map(c => ({ id: c.champion_id, key: c.key, name: esName[c.champion_id] || c.name, en: c.name, positions: [] }));
 const byId = Object.fromEntries(champs.map(c => [c.id, c]));
 for (const p of POS) for (const row of metaEn.data.positions[p] || []) {
   const c = byName[row.champion]; if (!c) continue;
