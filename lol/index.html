@@ -134,7 +134,7 @@ const LANE_ICON = {
   adc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 4v16H4"/><rect x="13" y="13" width="7" height="7" fill="currentColor" stroke="none" opacity=".5"/></svg>',
   support:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l3 5h5l-4 4 1.5 6L12 15l-5.5 3L8 12 4 8h5z"/></svg>'
 };
-let M = null, TIPS = null, CH = {}, cache = {};
+let M = null, TIPS = null, KITS = {}, ITEMS = {}, GUIDES = {}, CH = {}, cache = {};
 const DD = () => `https://ddragon.leagueoflegends.com/cdn/${M.ddragon}`;
 const champImg = id => `${DD()}/img/champion/${CH[id].key}.png`;
 const itemImg = id => `${DD()}/img/item/${id}.png`;
@@ -143,7 +143,7 @@ const spellOf = id => M.spells[id] || { n: "Hechizo " + id, img: "" };
 function ls(k, v){ try{ if(v === undefined){ const s = localStorage.getItem(k); return s ? JSON.parse(s) : null; } localStorage.setItem(k, JSON.stringify(v)); }catch(e){ return null; } }
 
 /* ---------- navegación por hash: #c-<id>-<pos> y #v-<id>-<pos>-<counterId> ---------- */
-function parseHash(){ const h = location.hash.slice(1).split("-"); if(h[0] === "c" && CH[h[1]]) return { name:"champ", id:+h[1], pos:h[2] }; if(h[0] === "v" && CH[h[1]] && CH[h[3]]) return { name:"vs", id:+h[1], pos:h[2], cid:+h[3], tab:"build" }; return { name:"home" }; }
+function parseHash(){ const h = location.hash.slice(1).split("-"); if(h[0] === "c" && CH[h[1]]) return { name:"champ", id:+h[1], pos:h[2] }; if(h[0] === "v" && CH[h[1]] && CH[h[3]]) return { name:"vs", id:+h[1], pos:h[2], cid:+h[3], tab:"plan" }; return { name:"home" }; }
 let view = { name:"home" };
 function go(hash){ if(location.hash === "#" + hash) render(); else location.hash = hash; }
 window.addEventListener("hashchange", () => { view = parseHash(); render(); window.scrollTo(0, 0); });
@@ -220,9 +220,11 @@ async function vs(){
   const X = CH[view.id], C = CH[view.cid], pos = view.pos;
   topbar(`${C.name} vs ${X.name}`, true);
   let d; try{ d = await loadM(X.id, pos); }catch(e){ $("#app").innerHTML = `<div class="empty">Sin datos para este enfrentamiento.</div>`; return; }
+  const gk = pos + "/" + X.id;
+  if(!(gk in GUIDES)){ try{ const gr = await fetch(`guides/${pos}/${X.id}.json`); GUIDES[gk] = gr.ok ? await gr.json() : null; }catch(e){ GUIDES[gk] = null; } }
   const r = d.counters.find(x => x.id === C.id) || { myWr: null, g: 0 };
   const G = d.vs[C.id];
-  const tab = view.tab || "build";
+  const tab = view.tab || "plan";
   $("#app").innerHTML = `
     <div class="vs"><div class="side me"><img src="${champImg(C.id)}" alt=""><b>${esc(C.name)}</b><span class="chip">Tú</span></div>
       <div class="mid">VS</div>
@@ -230,7 +232,7 @@ async function vs(){
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
       <div><span class="big good">${pct(r.myWr == null ? null : 1 - r.myWr)}</span> <span class="muted small">de victorias de ${esc(C.name)} en esta línea</span></div>
       <span class="small muted">${(r.g || 0).toLocaleString("es-ES")} partidas · parche ${esc(d.patch)}</span></div>
-    <div class="tabs" role="tablist">${[["build","Build"],["runas","Runas"],["skills","Habilidades"],["plan","Plan"]].map(([k,l]) => `<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join("")}</div>
+    <div class="tabs" role="tablist">${[["plan","Plan"],["build","Build"],["runas","Runas"],["skills","Habilidades"]].map(([k,l]) => `<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join("")}</div>
     <div id="tab"></div>`;
   document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { view.tab = b.dataset.tab; vs(); });
   const T = $("#tab");
@@ -273,43 +275,80 @@ function skillsHTML(G, C){
     <div class="small muted">${["Q","W","E","R"].map(k => `<b style="color:var(--gold2)">${k}</b> ${esc(name(k))}`).join(" · ")}</div>
     <div class="stat">${pct(S.wr)} victorias · ${S.g} partidas</div></div>`;
 }
+/* ---------- plan: guía experta + datos exactos del enfrentamiento ---------- */
+const statAt = (base, g, lvl) => base + g * (lvl - 1) * (0.7025 + 0.0175 * (lvl - 1));
+const fmtN = x => (Math.round(x * 10) / 10).toLocaleString("es-ES");
+function guideHTML(G0){
+  if(!G0) return "";
+  const list = (t, arr) => arr && arr.length ? `<div class="card plan"><h3>${t}</h3><ul class="tips">${arr.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : "";
+  const dcol = { "fácil":"var(--good)", "media":"var(--warn)", "difícil":"var(--bad)" }[G0.dificultad] || "var(--muted)";
+  return `<div class="card plan" style="border-color:var(--gold)"><h3>Resumen del enfrentamiento <span class="chip" style="color:${dcol};border-color:${dcol};margin-left:6px">Dificultad ${esc(G0.dificultad || "")}</span></h3><p>${esc(G0.resumen)}</p></div>
+    ${(G0.fases || []).map(f => list(esc(f.t), f.p)).join("")}
+    ${list("Trades y combos", G0.trades)}
+    ${list("Qué respetar y errores típicos", G0.evitar)}
+    ${list("Gestión de oleadas", G0.oleadas)}
+    ${list("Jungla, roams y visión", G0.jungla)}
+    ${list("Por qué esta build", G0.build)}
+    ${G0.late ? `<div class="card plan"><h3>Después de la línea</h3><p>${esc(G0.late)}</p></div>` : ""}`;
+}
+function statsHTML(C, X){
+  const a = KITS[C.id]?.stats, b = KITS[X.id]?.stats; if(!a || !b) return "";
+  const rows = [
+    ["Rango de ataque", a.range, b.range, 0], ["Velocidad de movimiento", a.ms, b.ms, 0],
+    ...[1, 6, 11].map(l => [`Vida · nivel ${l}`, statAt(a.hp, a.hpl, l), statAt(b.hp, b.hpl, l), 0]),
+    ...[1, 6, 11].map(l => [`Armadura · nivel ${l}`, statAt(a.ar, a.arl, l), statAt(b.ar, b.arl, l), 0]),
+    ...[1, 6, 11].map(l => [`Resist. mágica · nivel ${l}`, statAt(a.mr, a.mrl, l), statAt(b.mr, b.mrl, l), 0]),
+    ...[1, 6].map(l => [`Daño de ataque · nivel ${l}`, statAt(a.ad, a.adl, l), statAt(b.ad, b.adl, l), 0])
+  ];
+  const cell = (v, o) => { const d = v - o; return `<td style="text-align:right;font-variant-numeric:tabular-nums;${Math.abs(d) > 0.5 ? `color:${d > 0 ? "var(--good)" : "var(--bad)"}` : ""}">${fmtN(v)}</td>`; };
+  return `<div class="card"><h3>Estadísticas base comparadas</h3><div class="skills"><table style="border-spacing:0 2px;width:100%;font-family:var(--body);font-weight:500">
+    <tr><th style="text-align:left;width:auto">Sin objetos ni runas</th><th style="width:auto;text-align:right;color:var(--cyan)">${esc(C.name)}</th><th style="width:auto;text-align:right;color:var(--bad)">${esc(X.name)}</th></tr>
+    ${rows.map(([n, v, o]) => `<tr><td style="text-align:left;color:var(--muted);height:auto;width:auto">${n}</td>${cell(v, o)}${cell(o, v)}</tr>`).join("")}</table></div>
+    <p class="small muted" style="margin:0">${a.range > b.range + 25 ? `Tienes <b>${a.range - b.range}</b> unidades más de rango: castiga cuando ${esc(X.name)} se acerque a farmear.` : b.range > a.range + 25 ? `${esc(X.name)} tiene <b>${b.range - a.range}</b> unidades más de rango: no regales trades de ataques básicos gratis.` : "Rangos de ataque parecidos."} ${a.ms !== b.ms ? `Velocidad: ${a.ms > b.ms ? "tú eres" : "el rival es"} ${Math.abs(a.ms - b.ms)} más rápido sin botas.` : ""}</p></div>`;
+}
+function cdHTML(C, X){
+  const row = (ch, col) => (KITS[ch.id]?.spells || []).map(s => `<tr><td class="k" style="color:${col}">${s.k}</td><td style="text-align:left;width:auto;font-family:var(--body);font-weight:500;color:var(--ink);padding-right:8px">${esc(s.n)}</td><td style="width:auto;text-align:left;font-variant-numeric:tabular-nums;color:var(--muted)">${esc((s.cd || []).join(" / "))} s</td></tr>`).join("");
+  return `<div class="card"><h3>Enfriamientos por rango</h3><div class="skills"><table style="border-spacing:2px 4px">
+    <tr><th colspan="3" style="text-align:left;color:var(--cyan)">${esc(C.name)} (tú)</th></tr>${row(C, "var(--cyan)")}
+    <tr><th colspan="3" style="text-align:left;color:var(--bad);padding-top:8px">${esc(X.name)}</th></tr>${row(X, "var(--bad)")}</table></div>
+    <p class="small muted" style="margin:0">Sin aceleración de habilidades. Úsalo para contar ventanas: si ${esc(X.name)} gasta una habilidad larga, tienes ese tiempo para entrar.</p></div>`;
+}
+function spikesHTML(C, G){
+  if(!G || !G.core || !G.core[0]) return "";
+  const path = [...(G.core[0].ids || [])];
+  let acc = 0;
+  const lines = path.map((id, i) => { const it = ITEMS[id]; const g = it ? it.g : null; if(g) acc += g; return `<li><b>${esc(G.core[0].n[i])}</b>${g ? ` · ${g.toLocaleString("es-ES")} de oro (acumulado ${acc.toLocaleString("es-ES")})` : ""}${it && it.d ? ` <span class="muted">— ${esc(it.d)}</span>` : ""}</li>`; }).join("");
+  const boots = G.boots && G.boots[0] && ITEMS[G.boots[0].ids[0]];
+  return `<div class="card"><h3>Picos de poder por objetos</h3><ul class="tips">${lines}</ul>
+    ${boots ? `<p class="small muted" style="margin:0">Botas habituales: ${esc(G.boots[0].n[0])} (${boots.g.toLocaleString("es-ES")} de oro, ${pct(G.boots[0].pr)} de uso).</p>` : ""}
+    <p class="small muted" style="margin:0">Niveles clave: 2 (segunda habilidad), 3, 6 (definitiva), 11 y 16 (rangos de definitiva). Cuenta oleadas: el nivel 2 llega con la primera oleada + 3 súbditos cuerpo a cuerpo de la segunda.</p></div>`;
+}
 function planHTML(C, X, G, r){
-  const tc = TIPS[C.id] || {}, tx = TIPS[X.id] || {};
+  const tc = KITS[C.id] || TIPS[C.id] || {}, tx = KITS[X.id] || TIPS[X.id] || {};
+  const G0 = GUIDES[view.pos + "/" + X.id]?.[C.id];
   const parts = [];
-  // 1. Ventanas de castigo según enfriamientos del rival
-  const sp = (tx.spells || []).filter(s => s.k !== "R" && Array.isArray(s.cd) && s.cd.length).map(s => ({ ...s, cd1: parseFloat(String(s.cd[0]).split("/")[0]) })).filter(s => !isNaN(s.cd1)).sort((a, b) => b.cd1 - a.cd1);
-  const ult = (tx.spells || []).find(s => s.k === "R");
-  if(sp.length) parts.push(`<div class="card plan"><h3>Ventanas para tradear</h3>
-    <p>La habilidad básica de ${esc(X.name)} con más enfriamiento al principio es <b>${esc(sp[0].k)} · ${esc(sp[0].n)}</b> (${esc(sp[0].cd[0])} s a nivel 1). Cuando la gaste, tienes unos segundos para entrar sin recibir su mejor respuesta.</p>
-    <ul class="tips">${sp.slice(0, 3).map(s => `<li><b>${esc(s.k)} · ${esc(s.n)}</b>: ${esc(s.cd.join(" / "))} s. <span class="muted">${esc(strip(s.d).slice(0, 170))}${strip(s.d).length > 170 ? "…" : ""}</span></li>`).join("")}</ul>
-    ${ult ? `<p class="small muted">Definitiva (${esc(ult.n)}): ${esc((ult.cd || []).join(" / "))} s. Si la ves gastada, es tu momento para jugar más agresivo.</p>` : ""}</div>`);
-  // 2. Duración de partida
+  if(G0) parts.push(guideHTML(G0));
+  else parts.push(`<div class="card plan"><h3>Guía del enfrentamiento</h3><p class="small muted">Todavía no hay guía escrita para este enfrentamiento; abajo tienes los datos exactos para prepararlo.</p></div>`);
+  parts.push(`<div class="eyebrow" style="margin-top:6px">Datos exactos del enfrentamiento</div>`);
+  parts.push(statsHTML(C, X), cdHTML(C, X), spikesHTML(C, G));
   if(G && G.len && G.len.length > 1){
     const lab = ["<25′","25-30′","30-35′","35-40′","40′+"];
     const max = Math.max(...G.len.map(x => x.wr || 0)), min = Math.min(...G.len.map(x => x.wr || 1));
-    const early = G.len[0]?.wr, late = G.len[G.len.length - 1]?.wr;
-    const msg = early != null && late != null ? (early > late + 0.02 ? `${esc(C.name)} gana más en partidas cortas: aprovecha tu ventaja de línea pronto, presiona y cierra antes de que ${esc(X.name)} escale.` : late > early + 0.02 ? `${esc(C.name)} gana más cuanto más se alarga la partida: no fuerces en línea, farmea seguro y busca tus objetos clave.` : `El rendimiento de ${esc(C.name)} es parecido en todas las fases: céntrate en ganar la línea a base de trades bien elegidos.`) : "";
-    parts.push(`<div class="card plan"><h3>Según la duración de la partida</h3><p>${msg}</p>
-      <div class="bars">${G.len.map((x, i) => `<div><span>${pct(x.wr)}</span><i style="height:${10 + ((x.wr - min) / Math.max(0.001, max - min)) * 40}px"></i><span>${lab[i] || ""}</span></div>`).join("")}</div>
-      <p class="small muted">Porcentaje de victorias de ${esc(C.name)} por duración de partida según OP.GG.</p></div>`);
+    parts.push(`<div class="card plan"><h3>Victorias de ${esc(C.name)} según duración</h3>
+      <div class="bars">${G.len.map((x, i) => `<div><span>${pct(x.wr)}</span><i style="height:${10 + ((x.wr - min) / Math.max(0.001, max - min)) * 40}px"></i><span>${lab[i] || ""}</span></div>`).join("")}</div></div>`);
   }
-  // 3. Prioridades de build
-  if(G && G.core && G.core[0]){
-    parts.push(`<div class="card plan"><h3>Tu plan de objetos</h3><p>Sal con <b>${esc(G.start?.[0]?.n.join(" + ") || "—")}</b> y busca <b>${esc(G.core[0].n[0])}</b> como primer objeto${G.core[0].n[1] ? `; después ${esc(G.core[0].n.slice(1).join(" y "))}` : ""}.${G.max ? ` Sube primero la <b>${esc(G.max[0])}</b>${(tc.spells || []).find(s => s.k === G.max[0]) ? ` (${esc(tc.spells.find(s => s.k === G.max[0]).n)})` : ""}.` : ""}</p></div>`);
-  }
-  // 4. Consejos de Riot
-  if((tc.ally || []).length) parts.push(`<div class="card plan"><h3>Cómo jugar ${esc(C.name)}</h3><ul class="tips">${tc.ally.map(t => `<li>${esc(strip(t))}</li>`).join("")}</ul></div>`);
-  if((tx.enemy || []).length) parts.push(`<div class="card plan"><h3>Cómo jugar contra ${esc(X.name)}</h3><ul class="tips">${tx.enemy.map(t => `<li>${esc(strip(t))}</li>`).join("")}</ul></div>`);
   if(tx.passive) parts.push(`<div class="card plan"><h3>Pasiva de ${esc(X.name)}: ${esc(tx.passive.n)}</h3><p class="small">${esc(strip(tx.passive.d))}</p></div>`);
-  return `<div style="display:flex;flex-direction:column;gap:12px">${parts.join("") || `<div class="empty">Sin datos para el plan.</div>`}
-    <p class="small muted" style="margin:0">Plan generado a partir de los datos de OP.GG y de los consejos y habilidades oficiales de Riot.</p></div>`;
+  const riot = [...(tc.ally || []).map(t => `<li>${esc(strip(t))}</li>`)].join(""), riot2 = [...(tx.enemy || []).map(t => `<li>${esc(strip(t))}</li>`)].join("");
+  if(riot || riot2) parts.push(`<details class="card"><summary style="cursor:pointer;font-family:var(--cond);font-weight:700;letter-spacing:.06em;color:var(--gold)">CONSEJOS OFICIALES DE RIOT</summary>${riot ? `<p class="small" style="margin:8px 0 4px"><b>Con ${esc(C.name)}</b></p><ul class="tips small">${riot}</ul>` : ""}${riot2 ? `<p class="small" style="margin:8px 0 4px"><b>Contra ${esc(X.name)}</b></p><ul class="tips small">${riot2}</ul>` : ""}</details>`);
+  return `<div style="display:flex;flex-direction:column;gap:12px">${parts.join("")}
+    <p class="small muted" style="margin:0">Guía redactada a partir del kit oficial actual (Riot, parche ${esc(M.patch)}) y de las estadísticas de OP.GG de este enfrentamiento.</p></div>`;
 }
 
 /* ---------- arranque ---------- */
 (async () => {
   try{
-    const [m, t] = await Promise.all([fetch("data/meta.json").then(r => r.json()), fetch("data/tips.json").then(r => r.json())]);
-    M = m; TIPS = t; M.champs.forEach(c => CH[c.id] = c);
+    const [m, t, k, it] = await Promise.all(["data/meta.json", "data/tips.json", "data/kits.json", "data/items.json"].map(u => fetch(u).then(r => r.ok ? r.json() : {}).catch(() => ({}))));
+    M = m; TIPS = t; KITS = k.kits || {}; ITEMS = it; M.champs.forEach(c => CH[c.id] = c);
   }catch(e){ $("#app").innerHTML = `<div class="empty">No se han podido cargar los datos. Comprueba la conexión y recarga.</div>`; return; }
   view = parseHash(); render();
 })();
