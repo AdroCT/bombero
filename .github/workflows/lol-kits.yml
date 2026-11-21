@@ -1,0 +1,21 @@
+name: LoL - kits oficiales de Riot
+on:
+  push:
+    paths: ["lol/scripts/kits.mjs", ".github/workflows/lol-kits.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  kits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node lol/scripts/kits.mjs
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add lol/data
+          git commit -q -m "lol: kits de Riot actualizados" || { echo "sin cambios"; exit 0; }
+          git pull -q --rebase origin main && git push

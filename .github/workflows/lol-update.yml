@@ -19,6 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: node lol/scripts/update.mjs ${{ (github.event_name == 'push' || inputs.force) && '--force' || '' }}
+      - run: node lol/scripts/kits.mjs
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
