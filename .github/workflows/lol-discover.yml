@@ -1,0 +1,21 @@
+name: LoL - descubrir API de OP.GG
+on:
+  push:
+    paths: [".github/workflows/lol-discover.yml", "lol/scripts/discover.mjs"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node lol/scripts/discover.mjs
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add lol/discovery
+          git commit -m "lol: resultados de descubrimiento de la API de OP.GG" || echo "sin cambios"
+          git push
