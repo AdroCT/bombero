@@ -1,0 +1,12 @@
+{
+ "ms": 0,
+ "args": {
+  "position": "all",
+  "lang": "es_ES",
+  "desired_output_fields": [
+   "data.positions.top[].{champion,tier,win_rate,pick_rate,ban_rate,rank}"
+  ]
+ },
+ "out": "class LolListLaneMetaChampions: data\nclass Data: positions\nclass Positions: top\nclass Top: champion,win_rate,pick_rate,ban_rate,tier,rank\n\nLolListLaneMetaChampions(Data(Positions([Top(\"Malphite\",0.51,0.07,0.18,1,1),Top(\"Darius\",0.51,0.07,0.15,1,2),Top(\"Garen\",0.51,0.06,0.04,1,3),Top(\"Sett\",0.51,0.05,0.03,1,4),Top(\"Ornn\",0.52,0.04,0.01,1,5),Top(\"Camille\",0.51,0.05,0.02,1,6),Top(\"Kayle\",0.52,0.03,0.02,1,7),Top(\"Renekton\",0.5,0.06,0.05,1,8),Top(\"Shen\",0.51,0.03,0.01,2,9),Top(\"Gangplank\",0.51,0.05,0.1,2,10),Top(\"Mordekaiser\",0.5,0.05,0.08,2,11),Top(\"Irelia\",0.5,0.05,0.14,2,12),Top(\"Aatrox\",0.5,0.06,0.07,2,13),Top(\"Yone\",0.49,0.07,0.13,2,14),Top(\"Dr. Mundo\",0.51,0.04,0.02,2,15),Top(\"Sion\",0.51,0.04,0.01,2,16),Top(\"Pantheon\",0.51,0.04,0.03,2,17),Top(\"Kled\",0.52,0.02,0.01,2,18),Top(\"Singed\",0.52,0.02,0.01,2,19),Top(\"Jax\",0.49,0.07,0.1,2,20),Top(\"Zaahen\",0.51,0.03,0.01,2,21),Top(\"Olaf\",0.5,0.04,0.04,2,22),Top(\"Warwick\",0.52,0.01,0.01,2,23),Top(\"Cho'Gath\",0.5,0.03,0.07,2,24),Top(\"Fiora\",0.5,0.04,0.06,2,25),Top(\"Akali\",0.49,0.04,0.19,3,26),Top(\"Tryndamere\",0.5,0.03,0.03,3,27),Top(\"Teemo\",0.5,0.03,0.06,3,28),Top(\"Nasus\",0.5,0.03,0.08,3,29),Top(\"Gnar\",0.49,0.05,0.02,3,30),Top(\"Gwen\",0.5,0.03,0.03,3,31),Top(\"Ambessa\",0.49,0.04,0.05,3,32),Top(\"Riven\",0.5,0.03,0.01,3,33),Top(\"Urgot\",0.51,0.02,0.01,3,34),Top(\"Illaoi\",0.5,0.02,0.06,3,35),Top(\"Lissandra\",0.53,0.01,0.04,3,36),Top(\"Kennen\",0.5,0.02,0.01,3,37),Top(\"Jayce\",0.48,0.06,0.09,3,38),Top(\"Gragas\",0.5,0.02,0.01,3,39),Top(\"Volibear\",0.49,0.04,0.02,3,40),Top(\"Poppy\",0.51,0.01,0.03,3,41),Top(\"Yorick\",0.49,0.03,0.05,3,42),Top(\"Yasuo\",0.48,0.03,0.25,3,43),Top(\"Vladimir\",0.51,0.01,0.06,3,44),Top(\"Tahm Kench\",0.5,0.02,0.02,3,45),Top(\"Anivia\",0.52,0.01,0.02,3,46),Top(\"Wukong\",0.51,0.01,0.06,4,47),Top(\"Sylas\",0.5,0.01,0.17,4,48),Top(\"K'Sante\",0.47,0.05,0.03,4,49),Top(\"Swain\",0.51,0.01,0.02,4,50),Top(\"Quinn\",0.51,0.01,0.01,4,51),Top(\"Trundle\",0.49,0.02,0,4,52),Top(\"Aurora\",0.5,0.01,0.01,4,53),Top(\"Heimerdinger\",0.49,0.01,0.02,4,54),Top(\"Maokai\",0.5,0.01,0,4,55),Top(\"Vayne\",0.48,0.02,0.04,5,56),Top(\"Ryze\",0.49,0.01,0,5,57),Top(\"Rumble\",0.47,0.02,0.01,5,58)])))",
+ "took": 187
+}

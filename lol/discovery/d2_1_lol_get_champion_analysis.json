@@ -1,0 +1,18 @@
+{
+ "ms": 0,
+ "args": {
+  "champion": "AHRI",
+  "position": "mid",
+  "game_mode": "ranked",
+  "lang": "es_ES",
+  "tier": "emerald_plus",
+  "desired_output_fields": [
+   "champion",
+   "position",
+   "data.weak_counters[].{champion_id,champion_name,counter_win_rate,my_win_rate,play,win,win_rate}",
+   "data.strong_counters[].{champion_id,champion_name,counter_win_rate,my_win_rate,play,win,win_rate}"
+  ]
+ },
+ "out": "class LolGetChampionAnalysis: champion,position,data\nclass Data: strong_counters,weak_counters\nclass StrongCounter: champion_id,champion_name,play,win,my_win_rate,counter_win_rate,win_rate\n\nLolGetChampionAnalysis(\"Ahri\",\"MID\",Data([StrongCounter(14,\"Sion\",131,82,0.63,0.37,0.63),StrongCounter(3,\"Galio\",1178,681,0.58,0.42,0.58),StrongCounter(50,\"Swain\",185,106,0.57,0.43,0.57)],[StrongCounter(161,\"Vel'Koz\",339,154,0.45,0.55,0.55),StrongCounter(105,\"Fizz\",1013,481,0.47,0.53,0.53),StrongCounter(1,\"Annie\",998,473,0.47,0.53,0.53)]))\nOP.GG page: https://op.gg/lol/champions/ahri/build/mid?utm_source=opgg_mcp&utm_medium=mcp&utm_campaign=8b6e4fbe9aba",
+ "took": 580
+}

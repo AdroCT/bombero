@@ -1,0 +1,1 @@
+Error: tools/call: {"code":-32600,"message":"Invalid champion specified: MONKEY_KING"}
