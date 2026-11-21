@@ -44,7 +44,8 @@ console.log("Parche OP.GG:", patch, "| anterior:", prev?.patch, "| antigüedad (
 if (!force && prev && prev.patch === patch && ageDays < 3) { console.log("Sin cambios de parche y datos recientes: no se actualiza."); process.exit(0); }
 
 // 2) Campeones (nombres en inglés y español) y Data Dragon
-const dedupe = arr => [...new Map(arr.map(c => [c.champion_id, c])).values()];
+// OP.GG incluye variantes "Jade_*" (ids 60000+) con el mismo nombre que el campeón real: se descartan.
+const dedupe = arr => [...new Map(arr.filter(c => c.champion_id > 0 && c.champion_id < 60000 && !/^Jade_/i.test(c.key || "")).map(c => [c.champion_id, c])).values()];
 const champsEn = dedupe((await op("lol_list_champions", { lang: "en_US", desired_output_fields: ["data.champions[].{champion_id,key,name}"] })).data.champions);
 const champsEs = dedupe((await op("lol_list_champions", { lang: LANG, desired_output_fields: ["data.champions[].{champion_id,key,name}"] })).data.champions);
 const esName = Object.fromEntries(champsEs.map(c => [c.champion_id, c.name]));
@@ -108,6 +109,7 @@ const trimGuide = g => {
     items: (d.last_items || []).slice(0, 8).map(x => ({ id: x.ids[0], n: x.ids_names[0], pr: r3(x.pick_rate), wr: x.play ? r3(x.win / x.play) : null })),
     games: d.summary?.average_stats?.play ?? null };
 };
+if (limit === Infinity) { const { rmSync } = await import("node:fs"); rmSync(`${OUT}/m`, { recursive: true, force: true }); }
 const tasks = [];
 for (const c of champs) for (const p of c.positions) tasks.push([c, p.pos]);
 const todo = tasks.slice(0, limit);
