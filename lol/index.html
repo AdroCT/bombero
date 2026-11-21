@@ -79,7 +79,7 @@ img{max-width:100%}
 .vs .mid{font-family:var(--display);font-size:22px;color:var(--gold)}
 .big{font-family:var(--cond);font-weight:700;font-size:30px;line-height:1}
 .tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)}
-.tabs button{border:0;background:none;padding:10px 12px;font-family:var(--cond);font-weight:700;font-size:16px;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button{flex:1;border:0;background:none;padding:10px 6px;font-family:var(--cond);font-weight:700;font-size:16px;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--gold2);border-bottom-color:var(--gold)}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .card h3{margin:0;font-family:var(--cond);font-size:17px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold)}
@@ -96,8 +96,8 @@ img{max-width:100%}
 .rune.key img{width:44px;height:44px;border-color:var(--gold)}
 .rune span{font-size:14px}
 .skills{overflow-x:auto}
-.skills table{border-collapse:separate;border-spacing:3px;font-family:var(--cond);font-weight:700}
-.skills td,.skills th{width:26px;height:26px;text-align:center;font-size:14px;border-radius:4px}
+.skills table{border-collapse:separate;border-spacing:2px;font-family:var(--cond);font-weight:700}
+.skills td,.skills th{width:20px;height:24px;text-align:center;font-size:14px;border-radius:4px}
 .skills th{color:var(--muted);font-weight:600;font-size:12px}
 .skills td.k{color:var(--gold2);text-align:left;padding-right:8px;width:auto;white-space:nowrap}
 .skills td.on{background:var(--gold);color:var(--bg)}
@@ -230,7 +230,7 @@ async function vs(){
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
       <div><span class="big good">${pct(r.myWr == null ? null : 1 - r.myWr)}</span> <span class="muted small">de victorias de ${esc(C.name)} en esta línea</span></div>
       <span class="small muted">${(r.g || 0).toLocaleString("es-ES")} partidas · parche ${esc(d.patch)}</span></div>
-    <div class="tabs" role="tablist">${[["build","Build"],["runas","Runas"],["skills","Habilidades"],["plan","Cómo ganar"]].map(([k,l]) => `<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join("")}</div>
+    <div class="tabs" role="tablist">${[["build","Build"],["runas","Runas"],["skills","Habilidades"],["plan","Plan"]].map(([k,l]) => `<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join("")}</div>
     <div id="tab"></div>`;
   document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { view.tab = b.dataset.tab; vs(); });
   const T = $("#tab");
@@ -267,9 +267,10 @@ function skillsHTML(G, C){
   const t = TIPS[C.id], S = G.skills;
   if(!S) return `<div class="empty">Sin datos de habilidades.</div>`;
   const name = k => t?.spells?.find(s => s.k === k)?.n || "";
-  const rows = ["Q","W","E","R"].map(k => `<tr><td class="k">${k} <span class="muted" style="font-family:var(--body);font-weight:500;font-size:12px">${esc(name(k))}</span></td>${S.o.map(x => `<td class="${x === k ? "on" + (k === "R" ? " r" : "") : "off"}">${x === k ? k : ""}</td>`).join("")}</tr>`).join("");
+  const rows = ["Q","W","E","R"].map(k => `<tr><td class="k">${k}</td>${S.o.map(x => `<td class="${x === k ? "on" + (k === "R" ? " r" : "") : "off"}">${x === k ? k : ""}</td>`).join("")}</tr>`).join("");
   return `<div class="card"><h3>Orden de subida</h3>${G.max ? `<p style="margin:0">Maximiza: <b style="color:var(--gold2)">${G.max.join(" › ")}</b></p>` : ""}
     <div class="skills"><table><tr><th></th>${S.o.map((_, i) => `<th>${i + 1}</th>`).join("")}</tr>${rows}</table></div>
+    <div class="small muted">${["Q","W","E","R"].map(k => `<b style="color:var(--gold2)">${k}</b> ${esc(name(k))}`).join(" · ")}</div>
     <div class="stat">${pct(S.wr)} victorias · ${S.g} partidas</div></div>`;
 }
 function planHTML(C, X, G, r){
